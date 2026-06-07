@@ -207,21 +207,74 @@ function showEventDetails(events, dateString) {
   const formattedDate = `${parseInt(d)} de ${monthNames[parseInt(m) - 1]} de ${y}`;
   
   eventModalDate.textContent = formattedDate;
+
+  const downloadAttachment = document.getElementById('event-download-attachment');
+  const attachmentName = document.getElementById('event-attachment-name');
+  const downloadQuiz = document.getElementById('event-download-quiz');
+  const quizName = document.getElementById('event-quiz-name');
+  const attachmentsContainer = document.getElementById('event-modal-attachments');
   
   if (events.length === 1) {
     const ev = events[0];
     const icon = ev.subject ? subjectIcons[ev.subject] || '' : '';
     eventModalTitle.textContent = `${icon} ${ev.title}`;
     eventModalDescription.textContent = ev.description;
+
+    let hasAttachments = false;
+    
+    if (ev.attachment_data && ev.attachment_name) {
+      if (downloadAttachment && attachmentName) {
+        downloadAttachment.href = ev.attachment_data;
+        downloadAttachment.download = ev.attachment_name;
+        attachmentName.textContent = ev.attachment_name;
+        downloadAttachment.style.display = 'inline-flex';
+      }
+      hasAttachments = true;
+    } else {
+      if (downloadAttachment) downloadAttachment.style.display = 'none';
+    }
+
+    if (ev.quiz_data && ev.quiz_name) {
+      if (downloadQuiz && quizName) {
+        downloadQuiz.href = ev.quiz_data;
+        downloadQuiz.download = ev.quiz_name;
+        quizName.textContent = ev.quiz_name;
+        downloadQuiz.style.display = 'inline-flex';
+      }
+      hasAttachments = true;
+    } else {
+      if (downloadQuiz) downloadQuiz.style.display = 'none';
+    }
+
+    if (attachmentsContainer) {
+      attachmentsContainer.style.display = hasAttachments ? 'flex' : 'none';
+    }
   } else {
     eventModalTitle.textContent = "Múltiples Actividades";
     eventModalDescription.innerHTML = events.map(e => {
       const icon = e.subject ? subjectIcons[e.subject] || '' : '';
+      
+      const attachmentBtn = e.attachment_data && e.attachment_name 
+        ? `<a href="${e.attachment_data}" download="${e.attachment_name}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; margin-top: 8px; margin-right: 8px; text-align: left; text-decoration: none;"><span style="margin-right: 5px;">📎</span> Material de Referencia: <strong style="margin-left: 5px; word-break: break-all;">${e.attachment_name}</strong></a>` 
+        : '';
+        
+      const quizBtn = e.quiz_data && e.quiz_name 
+        ? `<a href="${e.quiz_data}" download="${e.quiz_name}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; margin-top: 8px; background-color: var(--success); text-align: left; text-decoration: none;"><span style="margin-right: 5px;">📝</span> Cuestionario de Práctica: <strong style="margin-left: 5px; word-break: break-all;">${e.quiz_name}</strong></a>` 
+        : '';
+        
+      const buttonsRow = (attachmentBtn || quizBtn) ? `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">${attachmentBtn}${quizBtn}</div>` : '';
+
       return `<div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
         <h4 style="margin-bottom: 8px; font-size: 1.1rem; color: var(--primary);">${icon} ${e.title}</h4>
-        <p style="font-size: 0.95rem;">${e.description}</p>
+        <p style="font-size: 0.95rem; white-space: pre-line;">${e.description}</p>
+        ${buttonsRow}
       </div>`;
     }).join('');
+
+    // Ocultar los botones globales del final del modal
+    if (downloadAttachment) downloadAttachment.style.display = 'none';
+    if (downloadQuiz) downloadQuiz.style.display = 'none';
+    if (attachmentsContainer) attachmentsContainer.style.display = 'none';
   }
   
   eventModal.style.display = 'flex';

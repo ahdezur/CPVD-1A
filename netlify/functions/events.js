@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
     }
 
     try {
-      const { id, title, date, description, subject } = JSON.parse(event.body || '{}');
+      const { id, title, date, description, subject, attachment_name, attachment_data, quiz_name, quiz_data } = JSON.parse(event.body || '{}');
 
       if (!title || !date || !description) {
         return {
@@ -69,20 +69,29 @@ exports.handler = async (event, context) => {
         // ACTUALIZAR
         const query = `
           UPDATE events 
-          SET title = $1, date = $2, description = $3, subject = $4 
-          WHERE id = $5 
+          SET title = $1, date = $2, description = $3, subject = $4,
+              attachment_name = $5, attachment_data = $6, quiz_name = $7, quiz_data = $8
+          WHERE id = $9 
           RETURNING *
         `;
-        const values = [title, date, description, subject || '', id];
+        const values = [
+          title, date, description, subject || '', 
+          attachment_name || '', attachment_data || '', 
+          quiz_name || '', quiz_data || '', id
+        ];
         queryResult = await client.query(query, values);
       } else {
         // CREAR NUEVO
         const query = `
-          INSERT INTO events (title, date, description, subject) 
-          VALUES ($1, $2, $3, $4) 
+          INSERT INTO events (title, date, description, subject, attachment_name, attachment_data, quiz_name, quiz_data) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
           RETURNING *
         `;
-        const values = [title, date, description, subject || ''];
+        const values = [
+          title, date, description, subject || '', 
+          attachment_name || '', attachment_data || '', 
+          quiz_name || '', quiz_data || ''
+        ];
         queryResult = await client.query(query, values);
       }
 

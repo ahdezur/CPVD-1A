@@ -79,18 +79,18 @@
           <h3 class="card-title" id="useful-links-title">🔗 Enlaces Útiles</h3>
           <ul class="links-list">
             <li>
-              <a href="https://chat.whatsapp.com" class="link-btn" target="_blank" rel="noopener noreferrer" id="whatsapp-link">
+              <a href="https://chat.whatsapp.com/JFPgiR6GgABLrrio8MxKeU?s=cl&p=a&mlu=4" class="link-btn" target="_blank" rel="noopener noreferrer" id="whatsapp-link">
                 💬 Grupo de WhatsApp de Apoderados
               </a>
             </li>
             <li>
-              <a href="#" class="link-btn" id="materials-link">
-                📋 Lista de Materiales 2026
+              <a href="https://www.cpvprovidencia.cl/" class="link-btn" target="_blank" rel="noopener noreferrer" id="school-website-link">
+                🏫 Sitio Web del Colegio
               </a>
             </li>
             <li>
-              <a href="#" class="link-btn" id="school-website-link">
-                🏫 Sitio Web del Colegio
+              <a href="https://providencia.parents.isamshosting.cloud/#/" class="link-btn" target="_blank" rel="noopener noreferrer" id="isams-link">
+                🛡️ Plataforma ISAMS
               </a>
             </li>
           </ul>
@@ -126,7 +126,17 @@
       <div class="modal-meta-row">
         <span>📅 Fecha: <strong id="event-modal-date"></strong></span>
       </div>
-      <p id="event-modal-description" style="white-space: pre-line;">Descripción detallada aquí.</p>
+      <p id="event-modal-description" style="white-space: pre-line; margin-bottom: 15px;">Descripción detallada aquí.</p>
+      
+      <!-- Botones para Descargar Archivos Adjuntos -->
+      <div id="event-modal-attachments" style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+        <a id="event-download-attachment" href="#" class="btn btn-secondary btn-sm" download style="display: none; justify-content: flex-start; text-align: left;">
+          📎 Material de Referencia: <span id="event-attachment-name" style="margin-left: 5px; font-weight: 700; word-break: break-all;"></span>
+        </a>
+        <a id="event-download-quiz" href="#" class="btn btn-primary btn-sm" download style="display: none; justify-content: flex-start; text-align: left; background-color: var(--success);">
+          📝 Cuestionario de Práctica: <span id="event-quiz-name" style="margin-left: 5px; font-weight: 700; word-break: break-all;"></span>
+        </a>
+      </div>
     </div>
   </div>
 

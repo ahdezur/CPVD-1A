@@ -198,6 +198,20 @@
                 <textarea id="event-description" class="form-control" rows="6" placeholder="Detalla horarios, requerimientos, materiales, etc." required style="resize: vertical; font-family: var(--font-body);"></textarea>
               </div>
 
+              <!-- Carga de Archivos Adjuntos (Referencia y Cuestionarios) -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 15px;">
+                <div class="form-group">
+                  <label for="event-attachment">Material de Referencia (Opcional)</label>
+                  <input type="file" id="event-attachment" class="form-control">
+                  <small id="attachment-status" style="color: var(--primary); font-weight: 600; display: none; margin-top: 4px;"></small>
+                </div>
+                <div class="form-group">
+                  <label for="event-quiz-file">Cuestionario de Práctica (Opcional)</label>
+                  <input type="file" id="event-quiz-file" class="form-control">
+                  <small id="quiz-status" style="color: var(--success); font-weight: 600; display: none; margin-top: 4px;"></small>
+                </div>
+              </div>
+
               <div style="display: flex; gap: 12px; margin-top: 24px;">
                 <button type="submit" class="btn btn-primary" id="btn-save-event">Programar Actividad</button>
                 <button type="button" class="btn btn-outline" id="btn-clear-event">Limpiar / Cancelar</button>

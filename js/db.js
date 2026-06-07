@@ -339,7 +339,11 @@ class Database {
             date: event.date,
             title: event.title,
             description: event.description,
-            subject: event.subject
+            subject: event.subject,
+            attachment_name: event.attachment_name,
+            attachment_data: event.attachment_data,
+            quiz_name: event.quiz_name,
+            quiz_data: event.quiz_data
           })
           .eq('id', event.id)
           .select();

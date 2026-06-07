@@ -51,6 +51,16 @@ const formEventTitle = document.getElementById('form-event-title');
 const btnSaveEvent = document.getElementById('btn-save-event');
 const btnClearEvent = document.getElementById('btn-clear-event');
 
+// Elementos del DOM - Adjuntos de Eventos
+const eventAttachmentInput = document.getElementById('event-attachment');
+const eventQuizInput = document.getElementById('event-quiz-file');
+const attachmentStatus = document.getElementById('attachment-status');
+const quizStatus = document.getElementById('quiz-status');
+
+// Variables de estado de archivos temporales
+let currentAttachment = { name: '', data: '' };
+let currentQuiz = { name: '', data: '' };
+
 // Inicializar Aplicación
 async function initAdmin() {
   // Inicializar base de datos
@@ -386,6 +396,124 @@ if (btnClearPost) {
 
 // --- LOGICA DE CALENDARIO (TAB 2) ---
 
+// Helpers para actualizar el estado visual de los archivos con opción de Quitar
+function updateAttachmentStatus(isExisting = false) {
+  if (!attachmentStatus) return;
+  if (currentAttachment.name) {
+    const label = isExisting ? 'Archivo existente' : 'Archivo seleccionado';
+    attachmentStatus.innerHTML = `${label}: ${currentAttachment.name} <a href="#" id="remove-attachment-btn" style="color: var(--danger); margin-left: 8px; font-weight: normal; text-decoration: underline;">Quitar</a>`;
+    attachmentStatus.style.display = 'block';
+    
+    const removeBtn = document.getElementById('remove-attachment-btn');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentAttachment = { name: '', data: '' };
+        attachmentStatus.style.display = 'none';
+        if (eventAttachmentInput) eventAttachmentInput.value = '';
+      });
+    }
+  } else {
+    attachmentStatus.style.display = 'none';
+  }
+}
+
+function updateQuizStatus(isExisting = false) {
+  if (!quizStatus) return;
+  if (currentQuiz.name) {
+    const label = isExisting ? 'Cuestionario existente' : 'Cuestionario seleccionado';
+    quizStatus.innerHTML = `${label}: ${currentQuiz.name} <a href="#" id="remove-quiz-btn" style="color: var(--danger); margin-left: 8px; font-weight: normal; text-decoration: underline;">Quitar</a>`;
+    quizStatus.style.display = 'block';
+    
+    const removeBtn = document.getElementById('remove-quiz-btn');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentQuiz = { name: '', data: '' };
+        quizStatus.style.display = 'none';
+        if (eventQuizInput) eventQuizInput.value = '';
+      });
+    }
+  } else {
+    quizStatus.style.display = 'none';
+  }
+}
+
+// Configurar escuchadores para la subida de archivos
+if (eventAttachmentInput) {
+  eventAttachmentInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      currentAttachment = { name: '', data: '' };
+      if (attachmentStatus) attachmentStatus.style.display = 'none';
+      return;
+    }
+    
+    // Validar tamaño máximo de 5MB
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast('El archivo supera el límite permitido de 5MB.', 'error');
+      eventAttachmentInput.value = '';
+      currentAttachment = { name: '', data: '' };
+      if (attachmentStatus) attachmentStatus.style.display = 'none';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      currentAttachment = {
+        name: file.name,
+        data: evt.target.result
+      };
+      updateAttachmentStatus(false);
+    };
+    reader.onerror = function() {
+      showToast('Error al leer el archivo.', 'error');
+      eventAttachmentInput.value = '';
+      currentAttachment = { name: '', data: '' };
+      if (attachmentStatus) attachmentStatus.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (eventQuizInput) {
+  eventQuizInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      currentQuiz = { name: '', data: '' };
+      if (quizStatus) quizStatus.style.display = 'none';
+      return;
+    }
+    
+    // Validar tamaño máximo de 5MB
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast('El archivo supera el límite permitido de 5MB.', 'error');
+      eventQuizInput.value = '';
+      currentQuiz = { name: '', data: '' };
+      if (quizStatus) quizStatus.style.display = 'none';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      currentQuiz = {
+        name: file.name,
+        data: evt.target.result
+      };
+      updateQuizStatus(false);
+    };
+    reader.onerror = function() {
+      showToast('Error al leer el cuestionario de práctica.', 'error');
+      eventQuizInput.value = '';
+      currentQuiz = { name: '', data: '' };
+      if (quizStatus) quizStatus.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 const friendlySubjects = {
   lenguaje: "📖 Lenguaje",
   science: "🔬 Science",
@@ -449,7 +577,17 @@ if (eventForm) {
     const date = eventDateInput.value;
     const description = eventDescriptionInput.value.trim();
 
-    const eventData = { id, title, date, description, subject };
+    const eventData = { 
+      id, 
+      title, 
+      date, 
+      description, 
+      subject,
+      attachment_name: currentAttachment.name,
+      attachment_data: currentAttachment.data,
+      quiz_name: currentQuiz.name,
+      quiz_data: currentQuiz.data
+    };
 
     try {
       await db.saveEvent(eventData);
@@ -472,6 +610,22 @@ function editEvent(ev) {
   }
   eventDateInput.value = ev.date;
   eventDescriptionInput.value = ev.description;
+
+  // Cargar estado de adjuntos si existen
+  currentAttachment = {
+    name: ev.attachment_name || '',
+    data: ev.attachment_data || ''
+  };
+  currentQuiz = {
+    name: ev.quiz_name || '',
+    data: ev.quiz_data || ''
+  };
+
+  updateAttachmentStatus(true);
+  updateQuizStatus(true);
+
+  if (eventAttachmentInput) eventAttachmentInput.value = '';
+  if (eventQuizInput) eventQuizInput.value = '';
 
   if (formEventTitle) formEventTitle.textContent = '🗓️ Editar Actividad';
   if (btnSaveEvent) btnSaveEvent.textContent = 'Actualizar Actividad';
@@ -506,6 +660,22 @@ function resetEventForm() {
   if (eventForm) eventForm.reset();
   if (eventIdInput) eventIdInput.value = '';
   if (eventSubjectInput) eventSubjectInput.value = '';
+
+  // Limpiar variables de archivos y UI de estado
+  currentAttachment = { name: '', data: '' };
+  currentQuiz = { name: '', data: '' };
+
+  if (eventAttachmentInput) eventAttachmentInput.value = '';
+  if (eventQuizInput) eventQuizInput.value = '';
+
+  if (attachmentStatus) {
+    attachmentStatus.textContent = '';
+    attachmentStatus.style.display = 'none';
+  }
+  if (quizStatus) {
+    quizStatus.textContent = '';
+    quizStatus.style.display = 'none';
+  }
 
   const today = new Date();
   if (eventDateInput) {
