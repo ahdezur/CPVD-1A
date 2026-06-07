@@ -291,7 +291,7 @@ function showEventDetails(events, dateString) {
         ? `<button class="btn btn-primary btn-sm view-inline-quiz-btn" data-event-id="${e.id}" style="display: inline-flex; align-items: center; margin-top: 8px; background-color: var(--success); text-align: left; border: none; cursor: pointer; color: white; font-family: var(--font-body); font-size: 0.875rem;"><span style="margin-right: 5px;">📝</span> Ver Cuestionario: <strong style="margin-left: 5px; word-break: break-all;">${e.quiz_name}</strong></button>` 
         : '';
         
-      const buttonsRow = (attachmentBtn || quizBtn) ? `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">${attachmentBtn}${quizBtn}</div>` : '';
+      const buttonsRow = (attachmentBtn || quizBtn) ? `<div class="event-modal-buttons-row">${attachmentBtn}${quizBtn}</div>` : '';
 
       return `<div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
         <h4 style="margin-bottom: 8px; font-size: 1.1rem; color: var(--primary);">${icon} ${e.title}</h4>
