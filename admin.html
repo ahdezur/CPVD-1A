@@ -170,9 +170,27 @@
                 <input type="text" id="event-title" class="form-control" placeholder="Ej: 🎨 Entrega de Proyecto de Arte" required>
               </div>
 
-              <div class="form-group">
-                <label for="event-date">Fecha de la Actividad</label>
-                <input type="date" id="event-date" class="form-control" required>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                  <label for="event-subject">Asignatura</label>
+                  <select id="event-subject" class="form-control">
+                    <option value="">Ninguna / Actividad General</option>
+                    <option value="lenguaje">📖 Lenguaje</option>
+                    <option value="science">🔬 Science</option>
+                    <option value="math">🔢 Math</option>
+                    <option value="musica">🎵 Música</option>
+                    <option value="ingles">🇬🇧 Inglés</option>
+                    <option value="ef">🏃🏽 Educación Física</option>
+                    <option value="religion">🕊️ Religión</option>
+                    <option value="consejo">🤝 Consejo de Curso</option>
+                    <option value="tecnologia">💻 Tecnología</option>
+                    <option value="arte">🎨 Arte</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="event-date">Fecha de la Actividad</label>
+                  <input type="date" id="event-date" class="form-control" required>
+                </div>
               </div>
 
               <div class="form-group">

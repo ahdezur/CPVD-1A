@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
     }
 
     try {
-      const { id, title, date, description } = JSON.parse(event.body || '{}');
+      const { id, title, date, description, subject } = JSON.parse(event.body || '{}');
 
       if (!title || !date || !description) {
         return {
@@ -69,20 +69,20 @@ exports.handler = async (event, context) => {
         // ACTUALIZAR
         const query = `
           UPDATE events 
-          SET title = $1, date = $2, description = $3 
-          WHERE id = $4 
+          SET title = $1, date = $2, description = $3, subject = $4 
+          WHERE id = $5 
           RETURNING *
         `;
-        const values = [title, date, description, id];
+        const values = [title, date, description, subject || '', id];
         queryResult = await client.query(query, values);
       } else {
         // CREAR NUEVO
         const query = `
-          INSERT INTO events (title, date, description) 
-          VALUES ($1, $2, $3) 
+          INSERT INTO events (title, date, description, subject) 
+          VALUES ($1, $2, $3, $4) 
           RETURNING *
         `;
-        const values = [title, date, description];
+        const values = [title, date, description, subject || ''];
         queryResult = await client.query(query, values);
       }
 

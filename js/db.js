@@ -4,33 +4,38 @@ import { CONFIG } from './config.js';
 const defaultEvents = [
   {
     id: 'ev-1',
-    date: '2026-06-12',
-    title: '🎨 Entrega de Proyecto de Arte',
-    description: 'Llevar la maqueta terminada utilizando materiales reciclados. Se evalúa en clases.'
+    date: '2026-06-08',
+    title: 'Llevar material',
+    description: '40 pinzas de ropa pequeñas (perros de ropa) que deben ser enviadas por la directiva del curso.',
+    subject: 'lenguaje'
   },
   {
     id: 'ev-2',
-    date: '2026-06-15',
-    title: '🦁 Paseo Escolar al Buin Zoo',
-    description: 'Salida en bus desde el colegio a las 08:30 AM. Llevar colación fría, agua, gorro para el sol y bloqueador solar. Regreso estimado a las 16:00 hrs.'
+    date: '2026-06-09',
+    title: 'Prueba: Quiz 1',
+    description: 'Quiz 1: Numbers up to 30.',
+    subject: 'math'
   },
   {
     id: 'ev-3',
-    date: '2026-06-19',
-    title: '📐 Prueba de Matemáticas',
-    description: 'Contenidos: Geometría básica, perímetros y áreas de figuras simples.'
+    date: '2026-06-09',
+    title: 'Arte - IPC: Llevar material',
+    description: 'Témperas roja, azul y amarilla; 3 pinceles (cualquier tamaño); mezclador escolar (o plato/tapa de plástico); y delantal o ropa vieja para ensuciar.',
+    subject: 'arte'
   },
   {
     id: 'ev-4',
-    date: '2026-06-24',
-    title: '🎂 Celebración de Cumpleaños del Mes',
-    description: 'Festejo conjunto de los compañeros que cumplen años en junio. Organización de la directiva para las sorpresas.'
+    date: '2026-06-10',
+    title: 'Prueba Plan Lector',
+    description: 'Libro del Plan Lector: "Adela y los calcetines desaparecidos".',
+    subject: 'lenguaje'
   },
   {
     id: 'ev-5',
-    date: '2026-07-03',
-    title: '🌳 Jornada Cultural al Aire Libre',
-    description: 'Actividad interactiva de reconocimiento de flora y fauna local. Llevar calzado cómodo.'
+    date: '2026-06-12',
+    title: 'Prueba de Inglés',
+    description: 'Contenidos de "Fun with friends" unit 3.',
+    subject: 'ingles'
   }
 ];
 
@@ -127,9 +132,16 @@ class Database {
   }
 
   _initLocalStorage() {
-    if (!localStorage.getItem('cpdv_events')) {
+    const currentVersion = '2'; // Cambiar versión para forzar actualización de actividades
+    const storedVersion = localStorage.getItem('cpdv_events_version');
+
+    if (storedVersion !== currentVersion) {
+      localStorage.setItem('cpdv_events', JSON.stringify(defaultEvents));
+      localStorage.setItem('cpdv_events_version', currentVersion);
+    } else if (!localStorage.getItem('cpdv_events')) {
       localStorage.setItem('cpdv_events', JSON.stringify(defaultEvents));
     }
+    
     if (!localStorage.getItem('cpdv_posts')) {
       localStorage.setItem('cpdv_posts', JSON.stringify(defaultPosts));
     }
@@ -326,7 +338,8 @@ class Database {
           .update({
             date: event.date,
             title: event.title,
-            description: event.description
+            description: event.description,
+            subject: event.subject
           })
           .eq('id', event.id)
           .select();

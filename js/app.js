@@ -106,7 +106,6 @@ async function refreshData() {
     showToast("Error al cargar los datos. Usando almacenamiento local.", "error");
   }
 }
-
 // Renderizar la grilla de días del calendario
 function renderCalendar() {
   if (!daysContainer) return;
@@ -115,11 +114,13 @@ function renderCalendar() {
 
   // Primer día del mes (0 = Domingo, 1 = Lunes, etc.)
   const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
-  // Último día del mes (ej. 30, 31)
+  // Ajustar primer día del mes para que empiece en lunes (Lunes = 0, Domingo = 6)
+  const startOffset = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
+  // Último día del mes
   const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
 
   // Rellenar días vacíos antes del primer día del mes
-  for (let i = 0; i < firstDayIndex; i++) {
+  for (let i = 0; i < startOffset; i++) {
     const emptyDiv = document.createElement('div');
     emptyDiv.classList.add('day', 'empty');
     daysContainer.appendChild(emptyDiv);
@@ -155,6 +156,12 @@ function renderCalendar() {
     if (dayEvents.length > 0) {
       dayDiv.classList.add('has-event');
       
+      // Aplicar color de fondo según la asignatura del primer evento
+      const firstEvent = dayEvents[0];
+      if (firstEvent.subject) {
+        dayDiv.classList.add(`subject-${firstEvent.subject}`);
+      }
+
       const indicatorsContainer = document.createElement('div');
       indicatorsContainer.classList.add('event-indicators');
       
@@ -181,6 +188,18 @@ function renderCalendar() {
     daysContainer.appendChild(dayDiv);
   }
 }
+const subjectIcons = {
+  lenguaje: "📖",
+  science: "🔬",
+  math: "🔢",
+  musica: "🎵",
+  ingles: "🇬🇧",
+  ef: "🏃🏽",
+  religion: "🕊️",
+  consejo: "🤝",
+  tecnologia: "💻",
+  arte: "🎨"
+};
 
 // Mostrar detalles del evento en el Modal
 function showEventDetails(events, dateString) {
@@ -190,13 +209,16 @@ function showEventDetails(events, dateString) {
   eventModalDate.textContent = formattedDate;
   
   if (events.length === 1) {
-    eventModalTitle.textContent = events[0].title;
-    eventModalDescription.textContent = events[0].description;
+    const ev = events[0];
+    const icon = ev.subject ? subjectIcons[ev.subject] || '' : '';
+    eventModalTitle.textContent = `${icon} ${ev.title}`;
+    eventModalDescription.textContent = ev.description;
   } else {
     eventModalTitle.textContent = "Múltiples Actividades";
     eventModalDescription.innerHTML = events.map(e => {
+      const icon = e.subject ? subjectIcons[e.subject] || '' : '';
       return `<div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-        <h4 style="margin-bottom: 8px; font-size: 1.1rem; color: var(--primary);">${e.title}</h4>
+        <h4 style="margin-bottom: 8px; font-size: 1.1rem; color: var(--primary);">${icon} ${e.title}</h4>
         <p style="font-size: 0.95rem;">${e.description}</p>
       </div>`;
     }).join('');
@@ -242,13 +264,20 @@ function renderUpcomingEvents() {
       li.classList.add('accent');
     }
 
+    // Agregar clase de la asignatura si existe para colorear el borde izquierdo
+    if (ev.subject) {
+      li.classList.add(`subject-${ev.subject}`);
+    }
+
     const [y, m, d] = ev.date.split('-');
     const dateObj = new Date(y, m - 1, d);
     const formattedDate = `${dateObj.getDate()} de ${monthNames[dateObj.getMonth()]}`;
+    
+    const icon = ev.subject ? subjectIcons[ev.subject] || '' : '';
 
     li.innerHTML = `
       <div class="event-date">${formattedDate}</div>
-      <h4>${ev.title}</h4>
+      <h4>${icon} ${ev.title}</h4>
       <p>${ev.description.substring(0, 75)}${ev.description.length > 75 ? '...' : ''}</p>
     `;
     

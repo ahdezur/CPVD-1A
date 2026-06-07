@@ -163,13 +163,24 @@ a:hover {
 /* Hero Section */
 .hero {
   padding: 60px 0 40px 0;
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
-.hero h1 {
-  font-size: 3rem;
+.hero-content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: center;
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  .hero-content-wrapper {
+    grid-template-columns: 1.3fr 1fr;
+  }
+}
+
+.hero-text h1 {
+  font-size: 3.2rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   margin-bottom: 16px;
@@ -178,10 +189,30 @@ a:hover {
   -webkit-text-fill-color: transparent;
 }
 
-.hero p {
+.hero-text p {
   font-size: 1.15rem;
   color: var(--text-muted);
   line-height: 1.7;
+}
+
+.hero-image-wrapper {
+  perspective: 1000px;
+}
+
+.hero-image {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 4px solid white;
+  box-shadow: var(--shadow-premium);
+  transform: rotateZ(-1.5deg);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hero-image:hover {
+  transform: scale(1.03) rotateZ(0deg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
 /* Dashboard Grid Layout */
@@ -922,3 +953,126 @@ footer {
 .toast.error {
   background-color: var(--danger);
 }
+
+/* Subject Colors & Themes (Asignaturas) */
+
+/* Lenguaje: Celeste/Azul claro */
+.day.subject-lenguaje {
+  background-color: hsl(200, 95%, 96%) !important;
+  border-color: hsl(200, 80%, 80%) !important;
+}
+.day.subject-lenguaje .day-number {
+  color: hsl(200, 85%, 35%) !important;
+}
+.event-item.subject-lenguaje {
+  border-left: 4px solid hsl(200, 85%, 55%) !important;
+}
+
+/* Science: Verde */
+.day.subject-science {
+  background-color: hsl(140, 80%, 96%) !important;
+  border-color: hsl(140, 70%, 80%) !important;
+}
+.day.subject-science .day-number {
+  color: hsl(140, 75%, 30%) !important;
+}
+.event-item.subject-science {
+  border-left: 4px solid hsl(140, 75%, 45%) !important;
+}
+
+/* Math: Rojo */
+.day.subject-math {
+  background-color: hsl(0, 90%, 96%) !important;
+  border-color: hsl(0, 80%, 85%) !important;
+}
+.day.subject-math .day-number {
+  color: hsl(0, 75%, 40%) !important;
+}
+.event-item.subject-math {
+  border-left: 4px solid hsl(0, 75%, 50%) !important;
+}
+
+/* Música: Morado */
+.day.subject-musica {
+  background-color: hsl(270, 85%, 97%) !important;
+  border-color: hsl(270, 75%, 85%) !important;
+}
+.day.subject-musica .day-number {
+  color: hsl(270, 75%, 45%) !important;
+}
+.event-item.subject-musica {
+  border-left: 4px solid hsl(270, 75%, 55%) !important;
+}
+
+/* Inglés: Amarillo */
+.day.subject-ingles {
+  background-color: hsl(50, 90%, 94%) !important;
+  border-color: hsl(50, 75%, 75%) !important;
+}
+.day.subject-ingles .day-number {
+  color: hsl(50, 80%, 30%) !important;
+}
+.event-item.subject-ingles {
+  border-left: 4px solid hsl(50, 80%, 45%) !important;
+}
+
+/* Educación Física: Naranja */
+.day.subject-ef {
+  background-color: hsl(25, 95%, 95%) !important;
+  border-color: hsl(25, 85%, 80%) !important;
+}
+.day.subject-ef .day-number {
+  color: hsl(25, 85%, 40%) !important;
+}
+.event-item.subject-ef {
+  border-left: 4px solid hsl(25, 85%, 50%) !important;
+}
+
+/* Religión: Blanco/Amarillo pálido */
+.day.subject-religion {
+  background-color: hsl(60, 40%, 97%) !important;
+  border-color: hsl(60, 30%, 85%) !important;
+}
+.day.subject-religion .day-number {
+  color: hsl(60, 40%, 35%) !important;
+}
+.event-item.subject-religion {
+  border-left: 4px solid hsl(60, 50%, 65%) !important;
+}
+
+/* Consejo de Curso: Turquesa */
+.day.subject-consejo {
+  background-color: hsl(175, 80%, 94%) !important;
+  border-color: hsl(175, 70%, 75%) !important;
+}
+.day.subject-consejo .day-number {
+  color: hsl(175, 75%, 35%) !important;
+}
+.event-item.subject-consejo {
+  border-left: 4px solid hsl(175, 75%, 45%) !important;
+}
+
+/* Tecnología: Gris/Azul metálico */
+.day.subject-tecnologia {
+  background-color: hsl(215, 25%, 94%) !important;
+  border-color: hsl(215, 30%, 80%) !important;
+}
+.day.subject-tecnologia .day-number {
+  color: hsl(215, 35%, 40%) !important;
+}
+.event-item.subject-tecnologia {
+  border-left: 4px solid hsl(215, 35%, 50%) !important;
+}
+
+/* Arte: Fucsia/Rosa fuerte */
+.day.subject-arte {
+  background-color: hsl(330, 90%, 96%) !important;
+  border-color: hsl(330, 80%, 85%) !important;
+}
+.day.subject-arte .day-number {
+  color: hsl(330, 80%, 40%) !important;
+}
+.event-item.subject-arte {
+  border-left: 4px solid hsl(330, 80%, 55%) !important;
+}
+

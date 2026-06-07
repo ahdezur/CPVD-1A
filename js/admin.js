@@ -43,6 +43,7 @@ const btnClearPost = document.getElementById('btn-clear-post');
 const eventForm = document.getElementById('event-form');
 const eventIdInput = document.getElementById('event-id');
 const eventTitleInput = document.getElementById('event-title');
+const eventSubjectInput = document.getElementById('event-subject');
 const eventDateInput = document.getElementById('event-date');
 const eventDescriptionInput = document.getElementById('event-description');
 const eventsListContainer = document.getElementById('events-list-container');
@@ -385,6 +386,19 @@ if (btnClearPost) {
 
 // --- LOGICA DE CALENDARIO (TAB 2) ---
 
+const friendlySubjects = {
+  lenguaje: "📖 Lenguaje",
+  science: "🔬 Science",
+  math: "🔢 Math",
+  musica: "🎵 Música",
+  ingles: "🇬🇧 Inglés",
+  ef: "🏃🏽 Educación Física",
+  religion: "🕊️ Religión",
+  consejo: "🤝 Consejo de Curso",
+  tecnologia: "💻 Tecnología",
+  arte: "🎨 Arte"
+};
+
 async function refreshEventList() {
   if (!eventsListContainer) return;
   eventsListContainer.innerHTML = '';
@@ -399,10 +413,13 @@ async function refreshEventList() {
     events.forEach(ev => {
       const item = document.createElement('div');
       item.classList.add('admin-list-item');
+      
+      const subjectLabel = ev.subject ? friendlySubjects[ev.subject] || ev.subject : 'Actividad General';
+      
       item.innerHTML = `
         <div class="item-info">
           <h4>${ev.title}</h4>
-          <p>📅 ${ev.date} | ${ev.description.substring(0, 80)}${ev.description.length > 80 ? '...' : ''}</p>
+          <p>📅 ${ev.date} | Asignatura: <strong>${subjectLabel}</strong> | ${ev.description.substring(0, 80)}${ev.description.length > 80 ? '...' : ''}</p>
         </div>
         <div class="item-actions">
           <button class="btn btn-secondary btn-sm edit-event-btn" data-id="${ev.id}">Editar</button>
@@ -428,10 +445,11 @@ if (eventForm) {
 
     const id = eventIdInput.value;
     const title = eventTitleInput.value.trim();
+    const subject = eventSubjectInput.value;
     const date = eventDateInput.value;
     const description = eventDescriptionInput.value.trim();
 
-    const eventData = { id, title, date, description };
+    const eventData = { id, title, date, description, subject };
 
     try {
       await db.saveEvent(eventData);
@@ -449,6 +467,9 @@ if (eventForm) {
 function editEvent(ev) {
   eventIdInput.value = ev.id;
   eventTitleInput.value = ev.title;
+  if (eventSubjectInput) {
+    eventSubjectInput.value = ev.subject || '';
+  }
   eventDateInput.value = ev.date;
   eventDescriptionInput.value = ev.description;
 
@@ -484,6 +505,7 @@ async function deleteEvent(id) {
 function resetEventForm() {
   if (eventForm) eventForm.reset();
   if (eventIdInput) eventIdInput.value = '';
+  if (eventSubjectInput) eventSubjectInput.value = '';
 
   const today = new Date();
   if (eventDateInput) {
