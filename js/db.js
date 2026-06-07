@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 
-// Semilla de datos iniciales para el modo local
+// Semilla de datos iniciales para el modo local (localStorage)
 const defaultEvents = [
   {
     id: 'ev-1',
@@ -76,34 +76,48 @@ const defaultPosts = [
 
 class Database {
   constructor() {
-    this.supabaseClient = null;
+    this.useApi = CONFIG.dataSource === 'api';
     this.useSupabase = false;
+    this.supabaseClient = null;
 
-    // Verificar si Supabase está configurado en config.js
-    if (CONFIG.supabase && CONFIG.supabase.url && CONFIG.supabase.anonKey) {
+    if (!this.useApi && CONFIG.supabase && CONFIG.supabase.url && CONFIG.supabase.anonKey) {
       this.useSupabase = true;
     }
   }
 
   async init() {
+    // Si la configuración indica API, probamos la conexión
+    if (this.useApi) {
+      try {
+        const response = await fetch('/api/posts');
+        if (response.ok) {
+          console.log("Conectado con éxito a Netlify Functions Serverless.");
+          return;
+        } else {
+          throw new Error(`Código de estado de la API: ${response.status}`);
+        }
+      } catch (err) {
+        console.warn("No se pudo establecer conexión con la API en /api/. Cayendo en modo local (localStorage).", err);
+        this.useApi = false;
+        // Habilitar Supabase como segunda opción o localStorage por defecto
+        if (CONFIG.supabase && CONFIG.supabase.url && CONFIG.supabase.anonKey) {
+          this.useSupabase = true;
+        }
+      }
+    }
+
     if (this.useSupabase) {
       if (window.supabase) {
         this.supabaseClient = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-        // Verificar conexión
         try {
           const { error } = await this.supabaseClient.from('posts').select('count', { count: 'exact', head: true });
-          if (error) {
-            console.warn("Error de conexión con Supabase. Asegúrate de haber creado las tablas posts y events. Cayendo en modo localStorage como respaldo.", error);
-            this.useSupabase = false;
-            this._initLocalStorage();
-          }
+          if (error) throw error;
         } catch (err) {
-          console.warn("Fallo en la inicialización de Supabase. Cayendo en modo localStorage.", err);
+          console.warn("Fallo de conexión en Supabase. Cayendo en localStorage.", err);
           this.useSupabase = false;
           this._initLocalStorage();
         }
       } else {
-        console.warn("Librería de Supabase no cargada en el DOM. Cayendo en modo localStorage.");
         this.useSupabase = false;
         this._initLocalStorage();
       }
@@ -121,9 +135,24 @@ class Database {
     }
   }
 
+  // Helper para obtener cabeceras HTTP que incluyan el token JWT
+  _getAuthHeaders() {
+    const token = sessionStorage.getItem('cpdv_admin_token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    };
+  }
+
   // --- MÉTODOS DE BLOG (POSTS) ---
 
   async getPosts() {
+    if (this.useApi) {
+      const response = await fetch('/api/posts');
+      if (!response.ok) throw new Error("Error en la API de posts.");
+      return await response.json();
+    }
+    
     if (this.useSupabase) {
       const { data, error } = await this.supabaseClient
         .from('posts')
@@ -138,9 +167,21 @@ class Database {
   }
 
   async savePost(post) {
+    if (this.useApi) {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: this._getAuthHeaders(),
+        body: JSON.stringify(post)
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Fallo al guardar en la API.");
+      }
+      return await response.json();
+    }
+
     if (this.useSupabase) {
       if (post.id) {
-        // Actualizar
         const { data, error } = await this.supabaseClient
           .from('posts')
           .update({
@@ -156,17 +197,9 @@ class Database {
         if (error) throw error;
         return data[0];
       } else {
-        // Crear nuevo
         const { data, error } = await this.supabaseClient
           .from('posts')
-          .insert([{
-            title: post.title,
-            excerpt: post.excerpt,
-            content: post.content,
-            date: post.date,
-            author: post.author,
-            category: post.category
-          }])
+          .insert([post])
           .select();
         if (error) throw error;
         return data[0];
@@ -188,6 +221,18 @@ class Database {
   }
 
   async deletePost(id) {
+    if (this.useApi) {
+      const response = await fetch(`/api/posts?id=${id}`, {
+        method: 'DELETE',
+        headers: this._getAuthHeaders()
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Fallo al eliminar en la API.");
+      }
+      return await response.json();
+    }
+
     if (this.useSupabase) {
       const { error } = await this.supabaseClient
         .from('posts')
@@ -213,7 +258,6 @@ class Database {
     if (this.isGoogleCalendarEnabled()) {
       try {
         const { calendarId, apiKey } = CONFIG.googleCalendar;
-        // Obtenemos los eventos ordenados por hora de inicio. singleEvents=true expande eventos recurrentes
         const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}&singleEvents=true&maxResults=250`;
         const response = await fetch(url);
         if (!response.ok) {
@@ -242,6 +286,12 @@ class Database {
       }
     }
 
+    if (this.useApi) {
+      const response = await fetch('/api/events');
+      if (!response.ok) throw new Error("Error en la API de events.");
+      return await response.json();
+    }
+
     if (this.useSupabase) {
       const { data, error } = await this.supabaseClient
         .from('events')
@@ -256,6 +306,19 @@ class Database {
   }
 
   async saveEvent(event) {
+    if (this.useApi) {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: this._getAuthHeaders(),
+        body: JSON.stringify(event)
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Fallo al guardar la actividad en la API.");
+      }
+      return await response.json();
+    }
+
     if (this.useSupabase) {
       if (event.id) {
         const { data, error } = await this.supabaseClient
@@ -272,11 +335,7 @@ class Database {
       } else {
         const { data, error } = await this.supabaseClient
           .from('events')
-          .insert([{
-            date: event.date,
-            title: event.title,
-            description: event.description
-          }])
+          .insert([event])
           .select();
         if (error) throw error;
         return data[0];
@@ -298,6 +357,18 @@ class Database {
   }
 
   async deleteEvent(id) {
+    if (this.useApi) {
+      const response = await fetch(`/api/events?id=${id}`, {
+        method: 'DELETE',
+        headers: this._getAuthHeaders()
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Fallo al eliminar la actividad en la API.");
+      }
+      return await response.json();
+    }
+
     if (this.useSupabase) {
       const { error } = await this.supabaseClient
         .from('events')
@@ -316,8 +387,30 @@ class Database {
   // --- AUTENTICACIÓN ---
 
   async login(username, password) {
+    if (this.useApi) {
+      try {
+        const response = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success) {
+          sessionStorage.setItem('cpdv_admin_token', data.token);
+          sessionStorage.setItem('cpdv_admin_logged', 'true');
+          sessionStorage.setItem('cpdv_admin_user', data.user.email);
+          return { success: true, user: data.user };
+        } else {
+          return { success: false, error: data.error || 'Fallo en la autenticación.' };
+        }
+      } catch (err) {
+        console.error("Error al autenticar con la API serverless:", err);
+        return { success: false, error: 'No se pudo contactar con el servidor de autenticación.' };
+      }
+    }
+
     if (this.useSupabase) {
-      // En Supabase el nombre de usuario debe ser un email
       const { data, error } = await this.supabaseClient.auth.signInWithPassword({
         email: username,
         password: password
@@ -332,12 +425,16 @@ class Database {
         sessionStorage.setItem('cpdv_admin_user', username);
         return { success: true, user: { email: username } };
       } else {
-        return { success: false, error: 'Credenciales inválidas. Verifica tu usuario y contraseña en el modo local.' };
+        return { success: false, error: 'Credenciales locales inválidas.' };
       }
     }
   }
 
   async logout() {
+    if (this.useApi) {
+      // Borrar token localmente es suficiente ya que el token JWT es stateless
+      sessionStorage.removeItem('cpdv_admin_token');
+    }
     if (this.useSupabase) {
       await this.supabaseClient.auth.signOut();
     }
@@ -346,6 +443,12 @@ class Database {
   }
 
   async isAuthenticated() {
+    if (this.useApi) {
+      const token = sessionStorage.getItem('cpdv_admin_token');
+      // Si hay un token y estamos marcados como logueados
+      return !!token && sessionStorage.getItem('cpdv_admin_logged') === 'true';
+    }
+    
     if (this.useSupabase) {
       const { data: { session } } = await this.supabaseClient.auth.getSession();
       return !!session;
@@ -355,14 +458,16 @@ class Database {
   }
 
   async getCurrentUser() {
-    if (this.useSupabase) {
-      const { data: { session } } = await this.supabaseClient.auth.getSession();
-      return session ? session.user : null;
-    } else {
+    if (this.useApi || !this.useSupabase) {
       if (sessionStorage.getItem('cpdv_admin_logged') === 'true') {
         return { email: sessionStorage.getItem('cpdv_admin_user') };
       }
       return null;
+    }
+    
+    if (this.useSupabase) {
+      const { data: { session } } = await this.supabaseClient.auth.getSession();
+      return session ? session.user : null;
     }
   }
 }

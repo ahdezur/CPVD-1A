@@ -1,6 +1,7 @@
 // Configuración global de la aplicación CPDV Portal
 export const CONFIG = {
   siteName: "CPDV - Portal de la Comunidad",
+  dataSource: "api", // "api" para Netlify Functions + PostgreSQL, "local" para localStorage
   
   // Credenciales por defecto para el modo administrador local (localStorage)
   localAdmin: {

@@ -1,0 +1,15 @@
+{
+  "name": "cpdv-portal",
+  "version": "1.0.0",
+  "description": "Portal de la comunidad CPDV con calendario y blog administrable listo para Netlify y PostgreSQL.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y http-server .",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3"
+  }
+}
