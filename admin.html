@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - CPDV Portal</title>
+  
+  <!-- Estilos Globales -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Quill Editor CSS CDN -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Barra de Navegación del Panel -->
+  <nav class="navbar">
+    <div class="container navbar-content">
+      <a href="index.html" class="logo">
+        <span>📅</span> CPDV Admin
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Volver al Sitio</a></li>
+        <li id="logout-nav-item" style="display: none;">
+          <button class="nav-link-btn btn-danger btn-sm" id="btn-logout" style="border:none; cursor:pointer;">Cerrar Sesión</button>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container" style="flex: 1;">
+    
+    <!-- VISTA 1: Formulario de Login -->
+    <main class="login-container" id="login-view">
+      <div class="card login-card">
+        <h2 class="login-title">Acceso Administrador</h2>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">Usuario / Correo</label>
+            <input type="text" id="username" class="form-control" placeholder="Ingrese admin" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" class="form-control" placeholder="Ingrese admin123" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">
+            🔑 Ingresar al Panel
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <!-- VISTA 2: Panel de Control (Dashboard) -->
+    <main id="admin-view" style="display: none; margin-top: 40px; margin-bottom: 60px;">
+      
+      <header class="admin-header">
+        <div>
+          <h1>Panel de Control</h1>
+          <p>Administrador activo: <strong id="admin-username-display" style="color: var(--primary);">admin</strong></p>
+        </div>
+      </header>
+
+      <!-- Selector de Pestañas (Tabs) -->
+      <nav class="admin-tabs" aria-label="Menú del Administrador">
+        <button class="tab-btn active" id="tab-blog-btn">📝 Gestionar Blog</button>
+        <button class="tab-btn" id="tab-calendar-btn">🗓️ Gestionar Calendario</button>
+      </nav>
+
+      <!-- SECCIÓN TAB 1: GESTIÓN DEL BLOG -->
+      <section class="tab-content active" id="tab-blog-content">
+        <div class="admin-grid">
+          
+          <!-- Formulario de Publicación -->
+          <article class="card" style="align-self: start;">
+            <h3 class="card-title" id="form-blog-title">✍️ Crear Nueva Publicación</h3>
+            <form id="blog-form">
+              <input type="hidden" id="post-id">
+              
+              <div class="form-group">
+                <label for="post-title">Título de la Lectura</label>
+                <input type="text" id="post-title" class="form-control" placeholder="Ej: Minuta de Reunión de Apoderados" required>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                  <label for="post-category">Categoría</label>
+                  <select id="post-category" class="form-control">
+                    <option value="Avisos">Avisos</option>
+                    <option value="Actividades">Actividades</option>
+                    <option value="Minutas">Minutas</option>
+                    <option value="Lecturas">General</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="post-date">Fecha de Publicación</label>
+                  <input type="date" id="post-date" class="form-control" required>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                  <label for="post-author">Autor / Firma</label>
+                  <input type="text" id="post-author" class="form-control" placeholder="Ej: Directiva de Curso">
+                </div>
+                <div class="form-group">
+                  <label for="post-excerpt">Resumen Corto (Opcional)</label>
+                  <input type="text" id="post-excerpt" class="form-control" placeholder="Una breve descripción para la vista previa">
+                </div>
+              </div>
+
+              <!-- Editor Enriquecido Quill con Alternancia HTML -->
+              <div class="form-group" style="margin-top: 10px;">
+                <label>Contenido del Artículo</label>
+                <div class="editor-container-wrapper">
+                  <div class="editor-toolbar-custom">
+                    <button type="button" class="btn btn-outline btn-sm" id="btn-toggle-html">
+                      Code </> (Ver Código HTML)
+                    </button>
+                  </div>
+                  <!-- Contenedor Visual (Quill) -->
+                  <div id="editor-container"></div>
+                  <!-- Contenedor Código Fuente (Textarea) -->
+                  <textarea id="html-editor-textarea" class="html-editor-textarea" placeholder="Escribe o pega tu código HTML aquí..."></textarea>
+                </div>
+                <small style="color: var(--text-muted); margin-top: 5px; display: block;">
+                  Puedes formatear visualmente en el editor o cambiar a modo "Code" para incrustar HTML personalizado (iframes de videos, tablas avanzadas, widgets, etc).
+                </small>
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" id="btn-save-post">Guardar Publicación</button>
+                <button type="button" class="btn btn-outline" id="btn-clear-post">Limpiar / Cancelar</button>
+              </div>
+            </form>
+          </article>
+
+          <!-- Listado de Publicaciones -->
+          <article class="card">
+            <h3 class="card-title">📋 Publicaciones Existentes</h3>
+            <div id="posts-list-container" style="max-height: 700px; overflow-y: auto;">
+              <!-- Se genera dinámicamente -->
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- SECCIÓN TAB 2: GESTIÓN DEL CALENDARIO -->
+      <section class="tab-content" id="tab-calendar-content">
+        <!-- Advertencia Google Calendar Activo (oculto por defecto) -->
+        <div id="gcal-warning-box" class="card" style="display: none; background-color: var(--accent-light); border-color: var(--accent); margin-bottom: 24px; padding: 20px;">
+          <p style="color: hsl(var(--accent-h), var(--accent-s), 25%); font-weight: 700;">
+            ⚠️ Integración con Google Calendar Activa
+          </p>
+          <p style="font-size: 0.9rem; margin-top: 4px; color: var(--text-body);">
+            La visualización de eventos en la portada está configurada para leer directamente desde un calendario público de Google. Las actividades guardadas en este panel se registrarán en tu base de datos actual (localStorage/Supabase), pero no aparecerán en la portada mientras la integración con Google Calendar esté activada en <code>js/config.js</code>.
+          </p>
+        </div>
+
+        <div class="admin-grid">
+          
+          <!-- Formulario de Evento -->
+          <article class="card" style="align-self: start;">
+            <h3 class="card-title" id="form-event-title">🗓️ Programar Nueva Actividad</h3>
+            <form id="event-form">
+              <input type="hidden" id="event-id">
+
+              <div class="form-group">
+                <label for="event-title">Título del Evento (puedes incluir Emojis)</label>
+                <input type="text" id="event-title" class="form-control" placeholder="Ej: 🎨 Entrega de Proyecto de Arte" required>
+              </div>
+
+              <div class="form-group">
+                <label for="event-date">Fecha de la Actividad</label>
+                <input type="date" id="event-date" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label for="event-description">Descripción Detallada</label>
+                <textarea id="event-description" class="form-control" rows="6" placeholder="Detalla horarios, requerimientos, materiales, etc." required style="resize: vertical; font-family: var(--font-body);"></textarea>
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" id="btn-save-event">Programar Actividad</button>
+                <button type="button" class="btn btn-outline" id="btn-clear-event">Limpiar / Cancelar</button>
+              </div>
+            </form>
+          </article>
+
+          <!-- Listado de Eventos -->
+          <article class="card">
+            <h3 class="card-title">📋 Actividades Programadas</h3>
+            <div id="events-list-container" style="max-height: 700px; overflow-y: auto;">
+              <!-- Se genera dinámicamente -->
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 CPDV Panel de Administración. Zona de Acceso Restringido.</p>
+    </div>
+  </footer>
+
+  <!-- Carga de SDK de Supabase (Requerido para producción) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Quill Editor JS CDN -->
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+  <!-- Lógica de Administración -->
+  <script type="module" src="js/admin.js"></script>
+
+</body>
+</html>

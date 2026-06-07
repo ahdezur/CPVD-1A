@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Escolar CPDV - Calendario y Blog de la Comunidad</title>
+  <meta name="description" content="Portal oficial de la comunidad escolar CPDV. Mantente informado con el calendario de actividades, pruebas, paseos y lecturas importantes del curso.">
+  
+  <!-- Estilos Globales -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Barra de Navegación Premium -->
+  <nav class="navbar" id="navbar">
+    <div class="container navbar-content">
+      <a href="index.html" class="logo" id="nav-logo">
+        <span>📅</span> CPDV Portal
+      </a>
+      <ul class="nav-links">
+        <li><a href="#calendar-section" class="nav-link active" id="link-calendar">Calendario</a></li>
+        <li><a href="#blog-section" class="nav-link" id="link-blog">Blog y Lecturas</a></li>
+        <li><a href="admin.html" class="nav-link-btn" id="link-admin">Panel Admin</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <header class="hero" id="hero-header">
+      <h1>Comunidad Escolar CPDV</h1>
+      <p>Un espacio digital interactivo diseñado para mantenernos conectados, coordinar paseos, revisar fechas de pruebas y compartir lecturas de utilidad académica y formativa.</p>
+    </header>
+
+    <!-- Layout Principal: Calendario y Sidebar -->
+    <main class="main-layout" id="calendar-section">
+      <!-- Columna Izquierda: Calendario -->
+      <section class="card" aria-labelledby="month-year-display">
+        <div class="calendar-header">
+          <button class="btn btn-secondary btn-sm" id="prev-month" aria-label="Mes Anterior">◀ Ant</button>
+          <h2 id="month-year-display">Junio 2026</h2>
+          <button class="btn btn-secondary btn-sm" id="next-month" aria-label="Mes Siguiente">Sig ▶</button>
+        </div>
+        
+        <div class="weekdays" aria-label="Días de la semana">
+          <div>Dom</div>
+          <div>Lun</div>
+          <div>Mar</div>
+          <div>Mié</div>
+          <div>Jue</div>
+          <div>Vie</div>
+          <div>Sáb</div>
+        </div>
+
+        <div class="days-grid" id="days-container" aria-label="Grilla del calendario">
+          <!-- Se genera dinámicamente con JS -->
+        </div>
+      </section>
+
+      <!-- Columna Derecha: Sidebar (Próximos Eventos y Enlaces) -->
+      <aside class="sidebar">
+        <!-- Próximos Eventos -->
+        <section class="card" aria-labelledby="upcoming-events-title">
+          <h3 class="card-title" id="upcoming-events-title">🚀 Próximos Eventos</h3>
+          <ul class="event-list" id="upcoming-events-list">
+            <!-- Se genera dinámicamente con JS -->
+          </ul>
+        </section>
+
+        <!-- Enlaces de Utilidad -->
+        <section class="card" aria-labelledby="useful-links-title">
+          <h3 class="card-title" id="useful-links-title">🔗 Enlaces Útiles</h3>
+          <ul class="links-list">
+            <li>
+              <a href="https://chat.whatsapp.com" class="link-btn" target="_blank" rel="noopener noreferrer" id="whatsapp-link">
+                💬 Grupo de WhatsApp de Apoderados
+              </a>
+            </li>
+            <li>
+              <a href="#" class="link-btn" id="materials-link">
+                📋 Lista de Materiales 2026
+              </a>
+            </li>
+            <li>
+              <a href="#" class="link-btn" id="school-website-link">
+                🏫 Sitio Web del Colegio
+              </a>
+            </li>
+          </ul>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Sección de Blog / Lecturas -->
+    <section id="blog-section" class="blog-container">
+      <div class="section-header">
+        <h2>📚 Lecturas y Novedades</h2>
+        <p style="color: var(--text-muted);">Artículos, circulares y recomendaciones del curso</p>
+      </div>
+
+      <div class="blog-grid" id="blog-posts-grid">
+        <!-- Tarjetas de blog dinámicas -->
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 CPDV Portal de la Comunidad. Creado y mantenido por la directiva. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- MODAL 1: Detalles del Evento -->
+  <div class="modal" id="event-modal" aria-hidden="true" role="dialog">
+    <div class="modal-content">
+      <button class="close-modal" id="close-event-modal" aria-label="Cerrar">&times;</button>
+      <h3 id="event-modal-title">Título del Evento</h3>
+      <div class="modal-meta-row">
+        <span>📅 Fecha: <strong id="event-modal-date"></strong></span>
+      </div>
+      <p id="event-modal-description" style="white-space: pre-line;">Descripción detallada aquí.</p>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Visualización de Lectura (Blog) -->
+  <div class="modal" id="blog-modal" aria-hidden="true" role="dialog">
+    <div class="modal-content" style="max-width: 800px;">
+      <button class="close-modal" id="close-blog-modal" aria-label="Cerrar">&times;</button>
+      <h3 id="blog-modal-title">Título de la Publicación</h3>
+      <div class="modal-meta-row">
+        <span>📅 <span id="blog-modal-date"></span></span>
+        <span>✍️ Autor: <strong id="blog-modal-author"></strong></span>
+        <span class="blog-category" id="blog-modal-category">Categoría</span>
+      </div>
+      <article class="modal-body" id="blog-modal-body">
+        <!-- Contenido HTML del blog generado por el rich editor -->
+      </article>
+    </div>
+  </div>
+
+  <!-- Carga de SDK de Supabase (Requerido para producción) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Lógica Principal del Portal -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>
