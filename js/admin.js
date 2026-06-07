@@ -510,7 +510,7 @@ if (eventQuizInput) {
       currentQuiz = { name: '', data: '' };
       if (quizStatus) quizStatus.style.display = 'none';
     };
-    reader.readAsDataURL(file);
+    reader.readAsText(file);
   });
 }
 

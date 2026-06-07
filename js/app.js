@@ -34,6 +34,13 @@ const blogModalCategory = document.getElementById('blog-modal-category');
 const blogModalBody = document.getElementById('blog-modal-body');
 const closeBlogModalBtn = document.getElementById('close-blog-modal');
 
+// Elementos del Modal de Cuestionario
+const quizModal = document.getElementById('quiz-modal');
+const quizModalTitle = document.getElementById('quiz-modal-title');
+const quizEventTitle = document.getElementById('quiz-event-title');
+const quizIframe = document.getElementById('quiz-iframe');
+const closeQuizModalBtn = document.getElementById('close-quiz-modal');
+
 // Navegación Activa
 const navLinks = document.querySelectorAll('.nav-link');
 
@@ -81,9 +88,12 @@ async function initApp() {
   // Escuchadores de cierre de modals
   closeEventModalBtn.addEventListener('click', () => closeAllModals());
   closeBlogModalBtn.addEventListener('click', () => closeAllModals());
+  if (closeQuizModalBtn) {
+    closeQuizModalBtn.addEventListener('click', () => closeAllModals());
+  }
 
   window.addEventListener('click', (e) => {
-    if (e.target === eventModal || e.target === blogModal) {
+    if (e.target === eventModal || e.target === blogModal || e.target === quizModal) {
       closeAllModals();
     }
   });
@@ -202,6 +212,23 @@ const subjectIcons = {
 };
 
 // Mostrar detalles del evento en el Modal
+function openQuizModal(fileName, eventTitle, htmlContent) {
+  if (!quizModal || !quizIframe) return;
+  
+  if (quizEventTitle) {
+    quizEventTitle.textContent = eventTitle;
+  }
+  if (quizModalTitle) {
+    quizModalTitle.innerHTML = `📝 Cuestionario: <span style="font-weight: normal; color: var(--text-muted); font-size: 1.1rem;">${fileName}</span>`;
+  }
+  
+  // Inyectar el HTML directamente en el iframe
+  quizIframe.srcdoc = htmlContent;
+  
+  quizModal.style.display = 'flex';
+  quizModal.setAttribute('aria-hidden', 'false');
+}
+
 function showEventDetails(events, dateString) {
   const [y, m, d] = dateString.split('-');
   const formattedDate = `${parseInt(d)} de ${monthNames[parseInt(m) - 1]} de ${y}`;
@@ -210,7 +237,7 @@ function showEventDetails(events, dateString) {
 
   const downloadAttachment = document.getElementById('event-download-attachment');
   const attachmentName = document.getElementById('event-attachment-name');
-  const downloadQuiz = document.getElementById('event-download-quiz');
+  const viewQuizBtn = document.getElementById('event-view-quiz');
   const quizName = document.getElementById('event-quiz-name');
   const attachmentsContainer = document.getElementById('event-modal-attachments');
   
@@ -235,15 +262,17 @@ function showEventDetails(events, dateString) {
     }
 
     if (ev.quiz_data && ev.quiz_name) {
-      if (downloadQuiz && quizName) {
-        downloadQuiz.href = ev.quiz_data;
-        downloadQuiz.download = ev.quiz_name;
+      if (viewQuizBtn && quizName) {
         quizName.textContent = ev.quiz_name;
-        downloadQuiz.style.display = 'inline-flex';
+        viewQuizBtn.style.display = 'inline-flex';
+        viewQuizBtn.onclick = (evt) => {
+          evt.preventDefault();
+          openQuizModal(ev.quiz_name, ev.title, ev.quiz_data);
+        };
       }
       hasAttachments = true;
     } else {
-      if (downloadQuiz) downloadQuiz.style.display = 'none';
+      if (viewQuizBtn) viewQuizBtn.style.display = 'none';
     }
 
     if (attachmentsContainer) {
@@ -259,7 +288,7 @@ function showEventDetails(events, dateString) {
         : '';
         
       const quizBtn = e.quiz_data && e.quiz_name 
-        ? `<a href="${e.quiz_data}" download="${e.quiz_name}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; margin-top: 8px; background-color: var(--success); text-align: left; text-decoration: none;"><span style="margin-right: 5px;">📝</span> Cuestionario de Práctica: <strong style="margin-left: 5px; word-break: break-all;">${e.quiz_name}</strong></a>` 
+        ? `<button class="btn btn-primary btn-sm view-inline-quiz-btn" data-event-id="${e.id}" style="display: inline-flex; align-items: center; margin-top: 8px; background-color: var(--success); text-align: left; border: none; cursor: pointer; color: white; font-family: var(--font-body); font-size: 0.875rem;"><span style="margin-right: 5px;">📝</span> Ver Cuestionario: <strong style="margin-left: 5px; word-break: break-all;">${e.quiz_name}</strong></button>` 
         : '';
         
       const buttonsRow = (attachmentBtn || quizBtn) ? `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">${attachmentBtn}${quizBtn}</div>` : '';
@@ -271,9 +300,22 @@ function showEventDetails(events, dateString) {
       </div>`;
     }).join('');
 
+    // Configurar listeners de clic para los botones inline de ver cuestionario
+    const inlineQuizBtns = eventModalDescription.querySelectorAll('.view-inline-quiz-btn');
+    inlineQuizBtns.forEach(btn => {
+      btn.addEventListener('click', (evt) => {
+        evt.preventDefault();
+        const evId = btn.getAttribute('data-event-id');
+        const targetEvent = events.find(item => item.id == evId);
+        if (targetEvent && targetEvent.quiz_data) {
+          openQuizModal(targetEvent.quiz_name, targetEvent.title, targetEvent.quiz_data);
+        }
+      });
+    });
+
     // Ocultar los botones globales del final del modal
     if (downloadAttachment) downloadAttachment.style.display = 'none';
-    if (downloadQuiz) downloadQuiz.style.display = 'none';
+    if (viewQuizBtn) viewQuizBtn.style.display = 'none';
     if (attachmentsContainer) attachmentsContainer.style.display = 'none';
   }
   
@@ -407,6 +449,15 @@ function closeAllModals() {
   eventModal.setAttribute('aria-hidden', 'true');
   blogModal.style.display = 'none';
   blogModal.setAttribute('aria-hidden', 'true');
+  if (quizModal) {
+    quizModal.style.display = 'none';
+    quizModal.setAttribute('aria-hidden', 'true');
+  }
+  // Vaciar el iframe al cerrar para liberar memoria y detener cualquier script
+  if (quizIframe) {
+    quizIframe.removeAttribute('srcdoc');
+    quizIframe.src = 'about:blank';
+  }
 }
 
 // Utilidad: Formatear fecha YYYY-MM-DD a "D de Mes, YYYY"

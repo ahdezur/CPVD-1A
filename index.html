@@ -133,9 +133,9 @@
         <a id="event-download-attachment" href="#" class="btn btn-secondary btn-sm" download style="display: none; justify-content: flex-start; text-align: left;">
           📎 Material de Referencia: <span id="event-attachment-name" style="margin-left: 5px; font-weight: 700; word-break: break-all;"></span>
         </a>
-        <a id="event-download-quiz" href="#" class="btn btn-primary btn-sm" download style="display: none; justify-content: flex-start; text-align: left; background-color: var(--success);">
-          📝 Cuestionario de Práctica: <span id="event-quiz-name" style="margin-left: 5px; font-weight: 700; word-break: break-all;"></span>
-        </a>
+        <button id="event-view-quiz" class="btn btn-primary btn-sm" style="display: none; justify-content: flex-start; text-align: left; background-color: var(--success); color: white; border: none; cursor: pointer; font-family: var(--font-body); font-size: 0.875rem;">
+          📝 Ver Cuestionario: <span id="event-quiz-name" style="margin-left: 5px; font-weight: 700; word-break: break-all;"></span>
+        </button>
       </div>
     </div>
   </div>
@@ -153,6 +153,19 @@
       <article class="modal-body" id="blog-modal-body">
         <!-- Contenido HTML del blog generado por el rich editor -->
       </article>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Cuestionario de Práctica (HTML) -->
+  <div class="modal" id="quiz-modal" aria-hidden="true" role="dialog">
+    <div class="modal-content" style="max-width: 900px; width: 95%; height: 85vh; display: flex; flex-direction: column; padding: 40px 40px 20px 40px; overflow: hidden;">
+      <button class="close-modal" id="close-quiz-modal" aria-label="Cerrar">&times;</button>
+      <h3 id="quiz-modal-title" style="margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 1.3rem;">
+        📝 Cuestionario: <span id="quiz-event-title" style="font-weight: normal; color: var(--text-muted); font-size: 1.1rem;"></span>
+      </h3>
+      <div style="flex: 1; width: 100%; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: white;">
+        <iframe id="quiz-iframe" style="width: 100%; height: 100%; border: none;" sandbox="allow-scripts allow-modals"></iframe>
+      </div>
     </div>
   </div>
 
