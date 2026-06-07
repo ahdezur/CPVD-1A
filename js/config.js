@@ -1,4 +1,4 @@
-// Configuración global de la aplicación CPDV Portal
+// Configuración global de la aplicación CPDV Portal (Actualizado: Junio 2026)
 export const CONFIG = {
   siteName: "CPDV - Portal de la Comunidad",
   dataSource: "api", // "api" para Netlify Functions + PostgreSQL, "local" para localStorage
