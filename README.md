@@ -21,4 +21,4 @@ Portal oficial interactivo para la comunidad escolar CPDV. Diseñado para regist
    - `ADMIN_PASSWORD`: Contraseña del administrador (por defecto: `admin123`).
 
 ---
-Creado para la comunidad escolar CPDV.
+Creado para la comunidad escolar 1ºA CPDV. Actualizado en Junio de 2026.
