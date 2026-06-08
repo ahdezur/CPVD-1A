@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Divertido: Adela y los calcetines desaparecidos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        }
+        header {
+            text-align: center;
+            border-bottom: 3px rounded #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #ff5a5f;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        p.subtitle {
+            color: #64748b;
+            font-size: 16px;
+            margin-top: 0;
+        }
+        .section-title {
+            color: #00b4d8;
+            font-size: 20px;
+            border-left: 5px solid #00b4d8;
+            padding-left: 10px;
+            margin-top: 35px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+        .btn-reveal {
+            background-color: #ff5a5f;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            outline: none;
+        }
+        .btn-reveal:hover {
+            background-color: #e0484d;
+        }
+        .btn-reveal.active {
+            background-color: #64748b;
+        }
+        .answer-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            border-left: 4px solid #475569;
+            display: none;
+        }
+        .answer-box p {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #334155;
+        }
+        .vocab-word {
+            color: #7209b7;
+            font-weight: bold;
+        }
+        .quote {
+            font-style: italic;
+            color: #64748b;
+            margin-bottom: 8px !important;
+            font-size: 14px !important;
+            background: #fafafa;
+            padding: 6px 10px;
+            border-radius: 4px;
+        }
+    </style>
+    <script>
+        function toggleAnswer(id, btn) {
+            var box = document.getElementById(id);
+            if (box.style.display === "none" || box.style.display === "") {
+                box.style.display = "block";
+                btn.textContent = btn.getAttribute("data-hide-text") || "Ocultar respuesta";
+                btn.classList.add("active");
+            } else {
+                box.style.display = "none";
+                btn.textContent = btn.getAttribute("data-show-text") || "Ver respuesta";
+                btn.classList.remove("active");
+            }
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🐾 Adela y los calcetines desaparecidos 🧦</h1>
+        <p class="subtitle">Preguntas de comprensión y vocabulario interactivo para jugar y aprender juntas</p>
+    </header>
+
+    <!-- SECCIÓN 1 -->
+    <div class="section-title">1. Preguntas Literales (Para recordar los detalles)</div>
+    
+    <div class="card">
+        <p class="question-text">¿Qué es lo primero que se le pierde a Adela en su casa y de qué color eran?</p>
+        <button class="btn-reveal" data-show-text="Ver respuesta" data-hide-text="Ocultar respuesta" onclick="toggleAnswer('lit1', this)">Ver respuesta</button>
+        <div id="lit1" class="answer-box">
+            <p><strong>Respuesta esperada:</strong> Se le pierden sus calcetines de color rojo.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text">¿En qué lugar trabaja Adela y qué tipo de animal es?</p>
+        <button class="btn-reveal" data-show-text="Ver respuesta" data-hide-text="Ocultar respuesta" onclick="toggleAnswer('lit2', this)">Ver respuesta</button>
+        <div id="lit2" class="answer-box">
+            <p><strong>Respuesta esperada:</strong> Trabaja en un laboratorio y es una perrita salchicha.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text">¿Qué experimento tan divertido e inusual estaba intentando hacer Adela en su laboratorio?</p>
+        <button class="btn-reveal" data-show-text="Ver respuesta" data-hide-text="Ocultar respuesta" onclick="toggleAnswer('lit3', this)">Ver respuesta</button>
+        <div id="lit3" class="answer-box">
+            <p><strong>Respuesta esperada:</strong> Estaba investigando si los perros salchicha podían alimentarse de leche con chocolate y galletitas en lugar de sus pellets saludables.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text">¿Cómo es físicamente Valentina, la mejor amiga de Adela? ¿Qué animal crees que es?</p>
+        <button class="btn-reveal" data-show-text="Ver respuesta" data-hide-text="Ocultar respuesta" onclick="toggleAnswer('lit4', this)">Ver respuesta</button>
+        <div id="lit4" class="answer-box">
+            <p><strong>Respuesta esperada:</strong> Es muy alta, de color amarillo con manchas café y tiene ojos profundos (es una jirafa).</p>
+        </div>
+    </div>
+
+
+    <!-- SECCIÓN 2 -->
+    <div class="section-title">2. Preguntas Inferenciales (Para pensar un poquito más allá)</div>
+
+    <div class="card">
+        <p class="question-text">En el laboratorio, las galletas de Adela empezaron a saber muy mal (como a cucarachas o pulgas de mar). ¿Por qué crees que le pasó eso?</p>
+        <button class="btn-reveal" data-show-text="Ver respuesta" data-hide-text="Ocultar respuesta" onclick="toggleAnswer('inf1', this)">Ver respuesta</button>
+        <div id="inf1" class="answer-box">
+            <p><strong>Respuesta esperada:</strong> Porque como no estaba viendo bien, se confundió y tomó el frasco equivocado.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text">Cuando Adela va al restaurante a ver a sus amigos, piensa que Valentina no fue. ¿Por qué no se dio cuenta al principio de que su amiga estaba sentada ahí con ellos?</p>
+        <button class="btn-reveal" data-show-text="Ver respuesta" data-hide-text="Ocultar respuesta" onclick="toggleAnswer('inf2', this)">Ver respuesta</button>
+        <div id="inf2" class="answer-box">
+            <p><strong>Respuesta esperada:</strong> Porque Adela estaba perdiendo la vista y no podía verla con los ojos; solo supo que estaba allí cuando escuchó su dulce voz.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text">Al final, cuando Adela no puede ver el árbol grande ni la panadería para llegar a su trabajo, ¿cómo logra orientarse y llegar sin perderse?</p>
+        <button class="btn-reveal" data-show-text="Ver respuesta" data-hide-text="Ocultar respuesta" onclick="toggleAnswer('inf3', this)">Ver respuesta</button>
+        <div id="inf3" class="answer-box">
+            <p><strong>Respuesta esperada:</strong> Usa sus otros sentidos. Huele el aroma de las flores amarillas del árbol (el aromo) para doblar a la izquierda, y el olor del pan recién sacado del horno para doblar a la derecha.</p>
+        </div>
+    </div>
+
+
+    <!-- SECCIÓN 3 -->
+    <div class="section-title">3. Preguntas de Reflexión (Para conversar en casa)</div>
+
+    <div class="card">
+        <p class="question-text">El libro nos muestra que Adela no estaba perdiendo sus cosas, sino que estaba perdiendo la vista. ¿Cómo crees que se sentía Adela al principio cuando pensaba que todo estaba desapareciendo?</p>
+        <button class="btn-reveal" data-show-text="Ver sugerencia" data-hide-text="Ocultar sugerencia" onclick="toggleAnswer('ref1', this)">Ver sugerencia</button>
+        <div id="ref1" class="answer-box">
+            <p><strong>Sugerencia de conversación:</strong> Exploren juntas la confusión o preocupación que sintió Adela al no entender lo que le pasaba y cómo el apoyo de sus amigos la ayudó a sentirse segura.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text">Si tuvieras que cerrar los ojos e ir desde tu habitación hasta la cocina, ¿qué olores o sonidos de la casa te ayudarían a saber en dónde estás?</p>
+        <button class="btn-reveal" data-show-text="Ver sugerencia" data-hide-text="Ocultar sugerencia" onclick="toggleAnswer('ref2', this)">Ver sugerencia</button>
+        <div id="ref2" class="answer-box">
+            <p><strong>Sugerencia de conversación:</strong> ¡Hagan la prueba! Cierren los ojos unos segundos y escuchen los sonidos de la casa (el refrigerador, los pájaros afuera) o sientan los olores para conectar con la experiencia de Adela.</p>
+        </div>
+    </div>
+
+
+    <!-- SECCIÓN 4 -->
+    <div class="section-title">4. Vocabulario Divertido (Nuevas palabras)</div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Exclama</span></p>
+        <p class="quote">«-¡¿Dónde están mis calcetines rojos?!- exclama Adela, mientras mira por tercera vez su cajón especial...»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc1', this)">Ver significado simple</button>
+        <div id="voc1" class="answer-box">
+            <p><strong>Significado:</strong> Decir algo en voz alta y con mucha fuerza o emoción, especialmente cuando estás muy sorprendida, asustada o entusiasmada.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Refunfuñando</span></p>
+        <p class="quote">«Refunfuñando, se pone otros calcetines»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc2', this)">Ver significado simple</button>
+        <div id="voc2" class="answer-box">
+            <p><strong>Significado:</strong> Hablar entre dientes o hacer ruiditos de queja en voz baja cuando tienes que hacer algo que no te gusta o estás un poquito molesta.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Desconcertada</span></p>
+        <p class="quote">«Está muy desconcertada»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc3', this)">Ver significado simple</button>
+        <div id="voc3" class="answer-box">
+            <p><strong>Significado:</strong> Sentirse muy confundida, extrañada o sorprendida porque pasó algo raro que no te esperabas y no logras entenderlo.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Empeñada</span></p>
+        <p class="quote">«Está empeñada en averiguar si los perros salchicha podrían alimentarse de leche con chocolate y galletitas...»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc4', this)">Ver significado simple</button>
+        <div id="voc4" class="answer-box">
+            <p><strong>Significado:</strong> Cuando te pones una meta fija en tu cabeza y pones todas tus ganas y esfuerzo en lograrla, sin rendirte fácilmente.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Insípidos</span></p>
+        <p class="quote">«...no tiene nada que ver con que no le gusten esos insípidos pellets...»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc5', this)">Ver significado simple</button>
+        <div id="voc5" class="answer-box">
+            <p><strong>Significado:</strong> Algo que no tiene sabor, que está completamente desabrido y que no sabe a nada rico o entretenido.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Intrigada</span></p>
+        <p class="quote">«...pero está intrigada por la ausencia de su amiga Valentina»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc6', this)">Ver significado simple</button>
+        <div id="voc6" class="answer-box">
+            <p><strong>Significado:</strong> Tener muchísima curiosidad o ganas de descubrir un misterio o saber el porqué de algo que te llama la atención.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Ausencia</span></p>
+        <p class="quote">«...pero está intrigada por la ausencia de su amiga Valentina»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc7', this)">Ver significado simple</button>
+        <div id="voc7" class="answer-box">
+            <p><strong>Significado:</strong> Significa que una persona o una cosa no está en el lugar donde debería estar; es decir, que falta en ese momento.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Sensata</span></p>
+        <p class="quote">«-No debes temer, una explicación sensata debe haber- dice Valentina...»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc8', this)">Ver significado simple</button>
+        <div id="voc8" class="answer-box">
+            <p><strong>Significado:</strong> Una respuesta o idea que es inteligente, lógica, que tiene buen sentido y que se piensa con calma.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="question-text"><span class="vocab-word">Alterada</span></p>
+        <p class="quote">«-¡Incluso pensé que tú no habías venido! - grita Adela, un poco alterada»</p>
+        <button class="btn-reveal" data-show-text="Ver significado simple" data-hide-text="Ocultar significado" onclick="toggleAnswer('voc9', this)">Ver significado simple</button>
+        <div id="voc9" class="answer-box">
+            <p><strong>Significado:</strong> Estar muy nerviosa, un poquito enojada, asustada o agitada por culpa de una situación difícil o preocupante.</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
