@@ -60,6 +60,19 @@
         </div>
       </header>
 
+      <!-- Advertencia de Almacenamiento Local Activo -->
+      <div id="local-storage-warning-box" class="card" style="display: none; background-color: #fef3c7; border: 1px solid #f59e0b; margin-bottom: 24px; padding: 20px; border-radius: var(--radius-md);">
+        <p style="color: #b45309; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
+          ⚠️ Modo de Almacenamiento Local (Sin Base de Datos) Activo
+        </p>
+        <p style="font-size: 0.9rem; margin-top: 8px; margin-bottom: 0; color: var(--text-body); line-height: 1.5;">
+          No se pudo conectar a la base de datos central (Netlify PostgreSQL o Supabase). El panel ha activado el <strong>modo local (localStorage)</strong> de respaldo. Las actividades y publicaciones que guardes aquí <strong>solo se guardarán en tu navegador actual</strong> y no serán visibles para otras personas o dispositivos desde otras computadoras.
+        </p>
+        <p style="font-size: 0.85rem; margin-top: 8px; margin-bottom: 0; color: #b45309; font-weight: 600;">
+          👉 Para solucionarlo, debes configurar tu base de datos en Netlify (variables de entorno) o ingresar tus credenciales de Supabase en <code>js/config.js</code>.
+        </p>
+      </div>
+
       <!-- Selector de Pestañas (Tabs) -->
       <nav class="admin-tabs" aria-label="Menú del Administrador">
         <button class="tab-btn active" id="tab-blog-btn">📝 Gestionar Blog</button>

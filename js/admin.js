@@ -121,6 +121,16 @@ async function showDashboard(user) {
     }
   }
 
+  // Verificar si está usando el modo local (localStorage) por fallo de la base de datos
+  const localStorageWarningBox = document.getElementById('local-storage-warning-box');
+  if (localStorageWarningBox) {
+    if (!db.useApi && !db.useSupabase) {
+      localStorageWarningBox.style.display = 'block';
+    } else {
+      localStorageWarningBox.style.display = 'none';
+    }
+  }
+
   // Inicializar Editor Quill si no existe
   initQuillEditor();
 
