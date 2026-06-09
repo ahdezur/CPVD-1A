@@ -1252,6 +1252,295 @@ footer {
     height: 92vh;
     max-height: 95vh;
   }
+
 }
+
+
+/* ==========================================================================
+   SECCIÓN: HORARIO DE CLASES (RESPONSIVO Y PREMIUM)
+   ========================================================================== */
+
+.schedule-container {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.schedule-card {
+  padding: 30px;
+  overflow: hidden;
+}
+
+/* --- VISTA DESKTOP (GRILLA SEMANAL) --- */
+.schedule-desktop {
+  display: block;
+  width: 100%;
+}
+
+.schedule-grid-header {
+  display: grid;
+  grid-template-columns: 100px repeat(5, 1fr);
+  gap: 12px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+}
+
+.schedule-grid-header .time-col {
+  text-align: left;
+  padding-left: 10px;
+}
+
+.schedule-grid-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: 100px repeat(5, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.schedule-time-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-right: 1px solid var(--border-color);
+  padding: 8px 10px 8px 0;
+}
+
+.schedule-time-cell .time-start {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.schedule-time-cell .time-end {
+  font-size: 0.75rem;
+}
+
+.schedule-cell {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  min-height: 85px;
+}
+
+.schedule-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light, var(--primary));
+}
+
+.schedule-cell.empty-cell {
+  background: transparent;
+  border: 1px dashed var(--border-color);
+  opacity: 0.4;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  min-height: auto;
+}
+
+.schedule-cell .subject-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.schedule-cell .teacher-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.schedule-cell .class-notes {
+  font-size: 0.75rem;
+  background: rgba(108, 99, 255, 0.08);
+  color: var(--primary);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-top: auto;
+  border-left: 2px solid var(--primary);
+}
+
+/* Colores dinámicos por asignatura (bordes izquierdos) */
+.schedule-cell.subject-lenguaje { border-left: 4px solid #4a90e2; }
+.schedule-cell.subject-math { border-left: 4px solid #f5a623; }
+.schedule-cell.subject-science { border-left: 4px solid #7ed321; }
+.schedule-cell.subject-ingles { border-left: 4px solid #bd10e0; }
+.schedule-cell.subject-arte { border-left: 4px solid #9013fe; }
+.schedule-cell.subject-musica { border-left: 4px solid #50e3c2; }
+.schedule-cell.subject-ef { border-left: 4px solid #e25c5c; }
+.schedule-cell.subject-religion { border-left: 4px solid #4a4a4a; }
+.schedule-cell.subject-tecnologia { border-left: 4px solid #00c0f9; }
+.schedule-cell.subject-consejo { border-left: 4px solid #7ed3c1; }
+
+/* Resaltado de la columna del día de hoy */
+.schedule-desktop .day-col.active-today {
+  color: var(--primary);
+  background: rgba(108, 99, 255, 0.05);
+  border-radius: 6px;
+}
+
+.schedule-cell.active-today {
+  background: linear-gradient(145deg, var(--bg-card), rgba(108, 99, 255, 0.03));
+  border-color: var(--primary);
+  box-shadow: 0 4px 15px rgba(108, 99, 255, 0.1);
+}
+
+/* --- VISTA MÓVIL (TABS POR DÍA) --- */
+.schedule-mobile {
+  display: none;
+}
+
+.schedule-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  overflow-x: auto;
+}
+
+.schedule-tab-btn {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 8px;
+  padding: 10px 5px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+  min-width: 55px;
+}
+
+.schedule-tab-btn:hover {
+  background: var(--bg-body);
+}
+
+.schedule-tab-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.schedule-mobile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.schedule-mobile-item {
+  display: flex;
+  gap: 15px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 15px;
+  position: relative;
+}
+
+.schedule-mobile-time {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 70px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  border-right: 1px solid var(--border-color);
+  padding-right: 12px;
+}
+
+.schedule-mobile-time .start {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.schedule-mobile-time .end {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.schedule-mobile-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-mobile-info h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text-color);
+}
+
+.schedule-mobile-info .teacher {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.schedule-mobile-info .notes {
+  font-size: 0.75rem;
+  background: rgba(108, 99, 255, 0.08);
+  color: var(--primary);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-top: 4px;
+  border-left: 2px solid var(--primary);
+  align-self: flex-start;
+}
+
+/* Colores dinámicos para móvil */
+.schedule-mobile-item.subject-lenguaje { border-left: 5px solid #4a90e2; }
+.schedule-mobile-item.subject-math { border-left: 5px solid #f5a623; }
+.schedule-mobile-item.subject-science { border-left: 5px solid #7ed321; }
+.schedule-mobile-item.subject-ingles { border-left: 5px solid #bd10e0; }
+.schedule-mobile-item.subject-arte { border-left: 5px solid #9013fe; }
+.schedule-mobile-item.subject-musica { border-left: 5px solid #50e3c2; }
+.schedule-mobile-item.subject-ef { border-left: 5px solid #e25c5c; }
+.schedule-mobile-item.subject-religion { border-left: 5px solid #4a4a4a; }
+.schedule-mobile-item.subject-tecnologia { border-left: 5px solid #00c0f9; }
+.schedule-mobile-item.subject-consejo { border-left: 5px solid #7ed3c1; }
+
+.schedule-mobile-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* --- RESPONSIVIDAD DEL HORARIO --- */
+@media (max-width: 900px) {
+  .schedule-desktop {
+    display: none;
+  }
+  .schedule-mobile {
+    display: block;
+  }
+  .schedule-card {
+    padding: 15px;
+  }
+}
+
 
 

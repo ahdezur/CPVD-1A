@@ -79,11 +79,30 @@ const defaultPosts = [
   }
 ];
 
+const defaultSchedule = [
+  { day_of_week: 1, start_time: '08:30', end_time: '10:00', subject: 'lenguaje', teacher: 'Prof. Clara Torres', notes: 'Traer estuche completo' },
+  { day_of_week: 1, start_time: '10:15', end_time: '11:45', subject: 'math', teacher: 'Prof. Andrés Soto', notes: 'Cuaderno de actividades' },
+  { day_of_week: 1, start_time: '12:00', end_time: '13:30', subject: 'ef', teacher: 'Prof. Mario Gómez', notes: 'Asistir con buzo del colegio' },
+  { day_of_week: 2, start_time: '08:30', end_time: '10:00', subject: 'ingles', teacher: 'Prof. Sarah Miller', notes: 'Libro Fun with Friends' },
+  { day_of_week: 2, start_time: '10:15', end_time: '11:45', subject: 'science', teacher: 'Prof. Ana López', notes: 'Traer lupa para laboratorio' },
+  { day_of_week: 2, start_time: '12:00', end_time: '13:30', subject: 'lenguaje', teacher: 'Prof. Clara Torres', notes: 'Cuaderno de caligrafía' },
+  { day_of_week: 3, start_time: '08:30', end_time: '10:00', subject: 'math', teacher: 'Prof. Andrés Soto', notes: 'Cuaderno de cálculo rápido' },
+  { day_of_week: 3, start_time: '10:15', end_time: '11:45', subject: 'musica', teacher: 'Prof. Luis Jara', notes: 'Traer metalófono' },
+  { day_of_week: 3, start_time: '12:00', end_time: '13:30', subject: 'tecnologia', teacher: 'Prof. Ana López', notes: 'Clase en sala de computación' },
+  { day_of_week: 4, start_time: '08:30', end_time: '10:00', subject: 'lenguaje', teacher: 'Prof. Clara Torres', notes: 'Lectura guiada plan lector' },
+  { day_of_week: 4, start_time: '10:15', end_time: '11:45', subject: 'science', teacher: 'Prof. Ana López', notes: 'Ficha del cuerpo humano' },
+  { day_of_week: 4, start_time: '12:00', end_time: '13:30', subject: 'religion', teacher: 'Prof. María Paz', notes: 'Cuaderno de religión' },
+  { day_of_week: 5, start_time: '08:30', end_time: '10:00', subject: 'math', teacher: 'Prof. Andrés Soto', notes: 'Quiz de repaso semanal' },
+  { day_of_week: 5, start_time: '10:15', end_time: '11:00', subject: 'consejo', teacher: 'Prof. Clara Torres', notes: 'Reunión de curso' },
+  { day_of_week: 5, start_time: '11:15', end_time: '12:45', subject: 'arte', teacher: 'Prof. Carolina Díaz', notes: 'Témperas, pinceles y mezclador' }
+];
+
 class Database {
   constructor() {
     this.useApi = CONFIG.dataSource === 'api';
     this.useSupabase = false;
     this.supabaseClient = null;
+    this.isFallbackActive = false; // Indica si se activó la caída a localStorage por falla de red
 
     if (!this.useApi && CONFIG.supabase && CONFIG.supabase.url && CONFIG.supabase.anonKey) {
       this.useSupabase = true;
@@ -91,43 +110,22 @@ class Database {
   }
 
   async init() {
-    // Si la configuración indica API, probamos la conexión
+    // Inicializar siempre local storage como respaldo pasivo (operación síncrona muy rápida)
+    this._initLocalStorage();
+
+    // Si la configuración indica API, no hacemos llamada de red bloqueante para verificar conexión al inicio.
+    // Esto optimiza drásticamente la carga de la página (ahorra un viaje de ida y vuelta HTTP).
+    // Si la API falla más adelante, las llamadas individuales a getEvents() y getPosts() caerán automáticamente en localStorage.
     if (this.useApi) {
-      try {
-        const response = await fetch('/api/posts');
-        if (response.ok) {
-          console.log("Conectado con éxito a Netlify Functions Serverless.");
-          return;
-        } else {
-          throw new Error(`Código de estado de la API: ${response.status}`);
-        }
-      } catch (err) {
-        console.warn("No se pudo establecer conexión con la API en /api/. Cayendo en modo local (localStorage).", err);
-        this.useApi = false;
-        // Habilitar Supabase como segunda opción o localStorage por defecto
-        if (CONFIG.supabase && CONFIG.supabase.url && CONFIG.supabase.anonKey) {
-          this.useSupabase = true;
-        }
-      }
+      return;
     }
 
     if (this.useSupabase) {
       if (window.supabase) {
         this.supabaseClient = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-        try {
-          const { error } = await this.supabaseClient.from('posts').select('count', { count: 'exact', head: true });
-          if (error) throw error;
-        } catch (err) {
-          console.warn("Fallo de conexión en Supabase. Cayendo en localStorage.", err);
-          this.useSupabase = false;
-          this._initLocalStorage();
-        }
       } else {
         this.useSupabase = false;
-        this._initLocalStorage();
       }
-    } else {
-      this._initLocalStorage();
     }
   }
 
@@ -145,6 +143,10 @@ class Database {
     if (!localStorage.getItem('cpdv_posts')) {
       localStorage.setItem('cpdv_posts', JSON.stringify(defaultPosts));
     }
+    
+    if (!localStorage.getItem('cpdv_schedule')) {
+      localStorage.setItem('cpdv_schedule', JSON.stringify(defaultSchedule));
+    }
   }
 
   // Helper para obtener cabeceras HTTP que incluyan el token JWT
@@ -160,18 +162,34 @@ class Database {
 
   async getPosts() {
     if (this.useApi) {
-      const response = await fetch('/api/posts');
-      if (!response.ok) throw new Error("Error en la API de posts.");
-      return await response.json();
+      try {
+        const response = await fetch('/api/posts');
+        if (!response.ok) throw new Error("Error en la API de posts.");
+        const data = await response.json();
+        this.isFallbackActive = false; // La conexión funciona
+        return data;
+      } catch (err) {
+        console.warn("Fallo de conexión en la API de posts. Cayendo en localStorage.", err);
+        this.isFallbackActive = true;
+        const posts = JSON.parse(localStorage.getItem('cpdv_posts') || '[]');
+        return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      }
     }
     
     if (this.useSupabase) {
-      const { data, error } = await this.supabaseClient
-        .from('posts')
-        .select('*')
-        .order('date', { ascending: false });
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await this.supabaseClient
+          .from('posts')
+          .select('*')
+          .order('date', { ascending: false });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn("Fallo de conexión en Supabase. Cayendo en localStorage.", err);
+        this.isFallbackActive = true;
+        const posts = JSON.parse(localStorage.getItem('cpdv_posts') || '[]');
+        return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      }
     } else {
       const posts = JSON.parse(localStorage.getItem('cpdv_posts') || '[]');
       return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -299,18 +317,34 @@ class Database {
     }
 
     if (this.useApi) {
-      const response = await fetch('/api/events');
-      if (!response.ok) throw new Error("Error en la API de events.");
-      return await response.json();
+      try {
+        const response = await fetch('/api/events');
+        if (!response.ok) throw new Error("Error en la API de events.");
+        const data = await response.json();
+        this.isFallbackActive = false; // La conexión funciona
+        return data;
+      } catch (err) {
+        console.warn("Fallo de conexión en la API de eventos. Cayendo en localStorage.", err);
+        this.isFallbackActive = true;
+        const events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
+        return events.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
     }
 
     if (this.useSupabase) {
-      const { data, error } = await this.supabaseClient
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true });
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await this.supabaseClient
+          .from('events')
+          .select('*')
+          .order('date', { ascending: true });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn("Fallo de conexión en Supabase. Cayendo en localStorage.", err);
+        this.isFallbackActive = true;
+        const events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
+        return events.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
     } else {
       const events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
       return events.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -397,6 +431,136 @@ class Database {
       let events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
       events = events.filter(e => e.id !== id);
       localStorage.setItem('cpdv_events', JSON.stringify(events));
+      return true;
+    }
+  }
+
+  // --- MÉTODOS DE HORARIO (SCHEDULE) ---
+
+  async getSchedule() {
+    if (this.useApi) {
+      try {
+        const response = await fetch('/api/schedule');
+        if (!response.ok) throw new Error("Error en la API de schedule.");
+        const data = await response.json();
+        this.isFallbackActive = false;
+        return data;
+      } catch (err) {
+        console.warn("Fallo de conexión en la API de horario. Cayendo en localStorage.", err);
+        this.isFallbackActive = true;
+        const schedule = JSON.parse(localStorage.getItem('cpdv_schedule') || '[]');
+        return schedule.sort((a, b) => {
+          if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week;
+          return a.start_time.localeCompare(b.start_time);
+        });
+      }
+    }
+    
+    if (this.useSupabase) {
+      try {
+        const { data, error } = await this.supabaseClient
+          .from('schedule')
+          .select('*')
+          .order('day_of_week', { ascending: true })
+          .order('start_time', { ascending: true });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn("Fallo de conexión en Supabase. Cayendo en localStorage.", err);
+        this.isFallbackActive = true;
+        const schedule = JSON.parse(localStorage.getItem('cpdv_schedule') || '[]');
+        return schedule.sort((a, b) => {
+          if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week;
+          return a.start_time.localeCompare(b.start_time);
+        });
+      }
+    } else {
+      const schedule = JSON.parse(localStorage.getItem('cpdv_schedule') || '[]');
+      return schedule.sort((a, b) => {
+        if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week;
+        return a.start_time.localeCompare(b.start_time);
+      });
+    }
+  }
+
+  async saveScheduleItem(item) {
+    if (this.useApi) {
+      const response = await fetch('/api/schedule', {
+        method: 'POST',
+        headers: this._getAuthHeaders(),
+        body: JSON.stringify(item)
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Fallo al guardar el bloque en la API.");
+      }
+      return await response.json();
+    }
+
+    if (this.useSupabase) {
+      if (item.id) {
+        const { data, error } = await this.supabaseClient
+          .from('schedule')
+          .update({
+            day_of_week: item.day_of_week,
+            start_time: item.start_time,
+            end_time: item.end_time,
+            subject: item.subject,
+            teacher: item.teacher,
+            notes: item.notes
+          })
+          .eq('id', item.id)
+          .select();
+        if (error) throw error;
+        return data[0];
+      } else {
+        const { data, error } = await this.supabaseClient
+          .from('schedule')
+          .insert([item])
+          .select();
+        if (error) throw error;
+        return data[0];
+      }
+    } else {
+      const schedule = JSON.parse(localStorage.getItem('cpdv_schedule') || '[]');
+      if (item.id) {
+        const index = schedule.findIndex(s => s.id === item.id);
+        if (index !== -1) {
+          schedule[index] = { ...schedule[index], ...item };
+        }
+      } else {
+        item.id = 'sch-' + Date.now();
+        schedule.push(item);
+      }
+      localStorage.setItem('cpdv_schedule', JSON.stringify(schedule));
+      return item;
+    }
+  }
+
+  async deleteScheduleItem(id) {
+    if (this.useApi) {
+      const response = await fetch(`/api/schedule?id=${id}`, {
+        method: 'DELETE',
+        headers: this._getAuthHeaders()
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Fallo al eliminar el bloque en la API.");
+      }
+      return await response.json();
+    }
+
+    if (this.useSupabase) {
+      const { error } = await this.supabaseClient
+        .from('schedule')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return true;
+    } else {
+      let schedule = JSON.parse(localStorage.getItem('cpdv_schedule') || '[]');
+      schedule = schedule.filter(s => s.id !== id);
+      localStorage.setItem('cpdv_schedule', JSON.stringify(schedule));
       return true;
     }
   }

@@ -19,6 +19,7 @@
       </a>
       <ul class="nav-links">
         <li><a href="#calendar-section" class="nav-link active" id="link-calendar">Calendario</a></li>
+        <li><a href="#schedule-section" class="nav-link" id="link-schedule">Horario</a></li>
         <li><a href="#blog-section" class="nav-link" id="link-blog">Blog y Lecturas</a></li>
         <li><a href="admin.html" class="nav-link-btn" id="link-admin">Panel Admin</a></li>
       </ul>
@@ -97,6 +98,46 @@
         </section>
       </aside>
     </main>
+
+    <!-- Sección de Horario de Clases -->
+    <section id="schedule-section" class="schedule-container">
+      <div class="section-header">
+        <h2>🗓️ Horario de Clases</h2>
+        <p style="color: var(--text-muted);">Horario semanal de clases para Primero Básico A</p>
+      </div>
+
+      <!-- Contenedor del Horario -->
+      <div class="card schedule-card">
+        <!-- Vista Desktop (Opción 1: Grilla Completa) -->
+        <div class="schedule-desktop" id="schedule-desktop-view">
+          <div class="schedule-grid-header">
+            <div class="time-col">Hora</div>
+            <div class="day-col" data-day="1">Lunes</div>
+            <div class="day-col" data-day="2">Martes</div>
+            <div class="day-col" data-day="3">Miércoles</div>
+            <div class="day-col" data-day="4">Jueves</div>
+            <div class="day-col" data-day="5">Viernes</div>
+          </div>
+          <div class="schedule-grid-body" id="schedule-desktop-body">
+            <!-- Rellenado dinámicamente con JS -->
+          </div>
+        </div>
+
+        <!-- Vista Móvil (Opción 2: Tabs por Día) -->
+        <div class="schedule-mobile" id="schedule-mobile-view">
+          <div class="schedule-tabs" role="tablist" id="schedule-mobile-tabs">
+            <button class="schedule-tab-btn" data-day="1" role="tab">Lun</button>
+            <button class="schedule-tab-btn" data-day="2" role="tab">Mar</button>
+            <button class="schedule-tab-btn" data-day="3" role="tab">Mié</button>
+            <button class="schedule-tab-btn" data-day="4" role="tab">Jue</button>
+            <button class="schedule-tab-btn" data-day="5" role="tab">Vie</button>
+          </div>
+          <div class="schedule-mobile-content" id="schedule-mobile-body" role="tabpanel">
+            <!-- Rellenado dinámicamente con JS -->
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Sección de Blog / Lecturas -->
     <section id="blog-section" class="blog-container">

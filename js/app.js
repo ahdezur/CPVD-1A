@@ -11,12 +11,15 @@ let currentYear;
 let currentMonth;
 let eventsList = [];
 let postsList = [];
+let scheduleList = [];
 
 // Elementos del DOM
 const daysContainer = document.getElementById('days-container');
 const monthYearDisplay = document.getElementById('month-year-display');
 const upcomingEventsList = document.getElementById('upcoming-events-list');
 const blogPostsGrid = document.getElementById('blog-posts-grid');
+const scheduleDesktopBody = document.getElementById('schedule-desktop-body');
+const scheduleMobileBody = document.getElementById('schedule-mobile-body');
 
 // Elementos del Modal de Evento
 const eventModal = document.getElementById('event-modal');
@@ -105,12 +108,20 @@ async function initApp() {
 // Cargar y actualizar datos de la base de datos
 async function refreshData() {
   try {
-    eventsList = await db.getEvents();
-    postsList = await db.getPosts();
+    // Cargar eventos, posts y horario de forma concurrente para acelerar la carga de la página
+    const [events, posts, schedule] = await Promise.all([
+      db.getEvents(),
+      db.getPosts(),
+      db.getSchedule()
+    ]);
+    eventsList = events;
+    postsList = posts;
+    scheduleList = schedule;
 
     renderCalendar();
     renderUpcomingEvents();
     renderBlogPosts();
+    renderSchedule();
   } catch (error) {
     console.error("Error cargando los datos del portal:", error);
     showToast("Error al cargar los datos. Usando almacenamiento local.", "error");
@@ -443,6 +454,172 @@ function showBlogReading(post) {
   blogModal.setAttribute('aria-hidden', 'false');
 }
 
+// --- RENDERIZADO DEL HORARIO DE CLASES ---
+
+// Nombres amigables de asignaturas para visualización
+const subjectLabels = {
+  lenguaje: "📖 Lenguaje",
+  science: "🔬 Science",
+  math: "🔢 Math",
+  musica: "🎵 Música",
+  ingles: "🇬🇧 Inglés",
+  ef: "🏃🏽 Ed. Física",
+  religion: "🕊️ Religión",
+  consejo: "🤝 Consejo Curso",
+  tecnologia: "💻 Tecnología",
+  arte: "🎨 Arte"
+};
+
+function renderSchedule() {
+  if (!scheduleDesktopBody || !scheduleMobileBody) return;
+  scheduleDesktopBody.innerHTML = '';
+  scheduleMobileBody.innerHTML = '';
+
+  const today = new Date();
+  let currentDayOfWeek = today.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+  // Si es fin de semana, por defecto mostramos el lunes (1)
+  if (currentDayOfWeek === 0 || currentDayOfWeek === 6) {
+    currentDayOfWeek = 1;
+  }
+
+  // --- RENDERIZAR VISTA ESCRITORIO (GRILLA) ---
+  
+  // Destacar la columna del día de hoy en el encabezado
+  const dayHeaders = document.querySelectorAll('.schedule-grid-header .day-col');
+  dayHeaders.forEach(header => {
+    const dayNum = parseInt(header.getAttribute('data-day'));
+    if (dayNum === currentDayOfWeek) {
+      header.classList.add('active-today');
+    } else {
+      header.classList.remove('active-today');
+    }
+  });
+
+  // Obtener bloques horarios únicos
+  const timeSlots = [];
+  const seenSlots = new Set();
+  scheduleList.forEach(item => {
+    const key = `${item.start_time}-${item.end_time}`;
+    if (!seenSlots.has(key)) {
+      seenSlots.add(key);
+      timeSlots.push({ start: item.start_time, end: item.end_time });
+    }
+  });
+
+  // Ordenar bloques por hora de inicio
+  timeSlots.sort((a, b) => a.start.localeCompare(b.start));
+
+  if (timeSlots.length === 0) {
+    scheduleDesktopBody.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">No hay bloques de horario configurados.</div>';
+  } else {
+    timeSlots.forEach(slot => {
+      const row = document.createElement('div');
+      row.classList.add('schedule-row');
+
+      // Columna de hora
+      const timeCell = document.createElement('div');
+      timeCell.classList.add('schedule-time-cell');
+      timeCell.innerHTML = `
+        <span class="time-start">${slot.start}</span>
+        <span class="time-end">${slot.end}</span>
+      `;
+      row.appendChild(timeCell);
+
+      // Columnas por día (1 a 5)
+      for (let day = 1; day <= 5; day++) {
+        const cell = document.createElement('div');
+        cell.classList.add('schedule-cell');
+
+        if (day === currentDayOfWeek) {
+          cell.classList.add('active-today');
+        }
+
+        // Buscar asignatura asignada a este bloque y día
+        const classItem = scheduleList.find(item => item.day_of_week === day && item.start_time === slot.start);
+
+        if (classItem) {
+          cell.classList.add(`subject-${classItem.subject}`);
+          const cleanSubject = subjectLabels[classItem.subject] || classItem.subject;
+          
+          cell.innerHTML = `
+            <div class="subject-name">${cleanSubject}</div>
+            ${classItem.teacher ? `<div class="teacher-name">${classItem.teacher}</div>` : ''}
+            ${classItem.notes ? `<div class="class-notes" title="${classItem.notes}">${classItem.notes}</div>` : ''}
+          `;
+        } else {
+          cell.classList.add('empty-cell');
+          cell.textContent = '-';
+        }
+        row.appendChild(cell);
+      }
+
+      scheduleDesktopBody.appendChild(row);
+    });
+  }
+
+  // --- RENDERIZAR VISTA MÓVIL (TABS POR DÍA) ---
+  const tabBtns = document.querySelectorAll('.schedule-tab-btn');
+  
+  // Limpiar listeners anteriores clonando los botones si es necesario,
+  // pero como se vuelven a asignar en cada renderizado, añadimos un check sencillo
+  tabBtns.forEach(btn => {
+    // Clonar para limpiar eventos y evitar acumulaciones
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    newBtn.addEventListener('click', () => {
+      const day = parseInt(newBtn.getAttribute('data-day'));
+      setActiveMobileDay(day);
+    });
+  });
+
+  // Mostrar por defecto el día actual
+  setActiveMobileDay(currentDayOfWeek);
+}
+
+function setActiveMobileDay(dayNum) {
+  const tabBtns = document.querySelectorAll('.schedule-tab-btn');
+  tabBtns.forEach(btn => {
+    const day = parseInt(btn.getAttribute('data-day'));
+    if (day === dayNum) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  if (!scheduleMobileBody) return;
+  scheduleMobileBody.innerHTML = '';
+
+  const dayClasses = scheduleList.filter(item => item.day_of_week === dayNum);
+
+  if (dayClasses.length === 0) {
+    scheduleMobileBody.innerHTML = '<div class="schedule-mobile-empty">No hay clases programadas para este día.</div>';
+    return;
+  }
+
+  dayClasses.forEach(item => {
+    const div = document.createElement('div');
+    div.classList.add('schedule-mobile-item', `subject-${item.subject}`);
+    
+    const cleanSubject = subjectLabels[item.subject] || item.subject;
+
+    div.innerHTML = `
+      <div class="schedule-mobile-time">
+        <span class="start">${item.start_time}</span>
+        <span class="end">${item.end_time}</span>
+      </div>
+      <div class="schedule-mobile-info">
+        <h4>${cleanSubject}</h4>
+        ${item.teacher ? `<span class="teacher">${item.teacher}</span>` : ''}
+        ${item.notes ? `<span class="notes">${item.notes}</span>` : ''}
+      </div>
+    `;
+    
+    scheduleMobileBody.appendChild(div);
+  });
+}
+
 // Cerrar todos los Modals abiertos
 function closeAllModals() {
   eventModal.style.display = 'none';
@@ -503,17 +680,24 @@ function setupNavigationHighlighting() {
   // Resaltado al hacer scroll
   window.addEventListener('scroll', () => {
     const calendarSec = document.getElementById('calendar-section');
+    const scheduleSec = document.getElementById('schedule-section');
     const blogSec = document.getElementById('blog-section');
-    if (!calendarSec || !blogSec) return;
+    
+    if (!calendarSec || !scheduleSec || !blogSec) return;
 
     const scrollPos = window.scrollY + 150;
 
+    // Quitar clase activa de todos
+    document.getElementById('link-calendar')?.classList.remove('active');
+    document.getElementById('link-schedule')?.classList.remove('active');
+    document.getElementById('link-blog')?.classList.remove('active');
+
     if (scrollPos >= blogSec.offsetTop) {
-      document.getElementById('link-calendar').classList.remove('active');
-      document.getElementById('link-blog').classList.add('active');
+      document.getElementById('link-blog')?.classList.add('active');
+    } else if (scrollPos >= scheduleSec.offsetTop) {
+      document.getElementById('link-schedule')?.classList.add('active');
     } else {
-      document.getElementById('link-calendar').classList.add('active');
-      document.getElementById('link-blog').classList.remove('active');
+      document.getElementById('link-calendar')?.classList.add('active');
     }
   });
 }

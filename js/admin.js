@@ -20,8 +20,24 @@ const btnLogout = document.getElementById('btn-logout');
 // Elementos del DOM - Tabs
 const tabBlogBtn = document.getElementById('tab-blog-btn');
 const tabCalendarBtn = document.getElementById('tab-calendar-btn');
+const tabScheduleBtn = document.getElementById('tab-schedule-btn');
 const tabBlogContent = document.getElementById('tab-blog-content');
 const tabCalendarContent = document.getElementById('tab-calendar-content');
+const tabScheduleContent = document.getElementById('tab-schedule-content');
+
+// Elementos del DOM - Horario
+const scheduleForm = document.getElementById('schedule-form');
+const scheduleIdInput = document.getElementById('schedule-id');
+const scheduleDayInput = document.getElementById('schedule-day');
+const scheduleStartTimeInput = document.getElementById('schedule-start-time');
+const scheduleEndTimeInput = document.getElementById('schedule-end-time');
+const scheduleSubjectInput = document.getElementById('schedule-subject');
+const scheduleTeacherInput = document.getElementById('schedule-teacher');
+const scheduleNotesInput = document.getElementById('schedule-notes');
+const scheduleListContainer = document.getElementById('schedule-list-container');
+const formScheduleTitle = document.getElementById('form-schedule-title');
+const btnSaveSchedule = document.getElementById('btn-save-schedule');
+const btnClearSchedule = document.getElementById('btn-clear-schedule');
 
 // Elementos del DOM - Formularios & Contenedores Blog
 const blogForm = document.getElementById('blog-form');
@@ -85,9 +101,15 @@ async function initAdmin() {
   }
 
   // Escuchadores de Tabs
-  if (tabBlogBtn && tabCalendarBtn) {
+  if (tabBlogBtn && tabCalendarBtn && tabScheduleBtn) {
     tabBlogBtn.addEventListener('click', () => switchTab('blog'));
     tabCalendarBtn.addEventListener('click', () => switchTab('calendar'));
+    tabScheduleBtn.addEventListener('click', () => switchTab('schedule'));
+  }
+
+  // Escuchador de Horario Form
+  if (scheduleForm) {
+    scheduleForm.addEventListener('submit', handleScheduleFormSubmit);
   }
 }
 
@@ -121,10 +143,10 @@ async function showDashboard(user) {
     }
   }
 
-  // Verificar si está usando el modo local (localStorage) por fallo de la base de datos
+  // Verificar si está usando el modo local (localStorage) por fallo de la base de datos o por fallback activo
   const localStorageWarningBox = document.getElementById('local-storage-warning-box');
   if (localStorageWarningBox) {
-    if (!db.useApi && !db.useSupabase) {
+    if ((!db.useApi && !db.useSupabase) || db.isFallbackActive) {
       localStorageWarningBox.style.display = 'block';
     } else {
       localStorageWarningBox.style.display = 'none';
@@ -137,10 +159,14 @@ async function showDashboard(user) {
   // Cargar las fechas por defecto para hoy
   resetBlogForm();
   resetEventForm();
+  resetScheduleForm();
 
-  // Cargar Listados
-  await refreshBlogList();
-  await refreshEventList();
+  // Cargar Listados de forma concurrente
+  await Promise.all([
+    refreshBlogList(),
+    refreshEventList(),
+    refreshScheduleList()
+  ]);
 }
 
 // Manejar Inicio de Sesión
@@ -173,16 +199,25 @@ async function handleLogout() {
 // Cambiar de Pestaña (Tabs)
 function switchTab(tab) {
   activeTab = tab;
+  
+  // Ocultar todos los contenidos y remover activo de todos los botones
+  tabBlogBtn?.classList.remove('active');
+  tabCalendarBtn?.classList.remove('active');
+  tabScheduleBtn?.classList.remove('active');
+  
+  tabBlogContent?.classList.remove('active');
+  tabCalendarContent?.classList.remove('active');
+  tabScheduleContent?.classList.remove('active');
+
   if (tab === 'blog') {
-    tabBlogBtn.classList.add('active');
-    tabCalendarBtn.classList.remove('active');
-    tabBlogContent.classList.add('active');
-    tabCalendarContent.classList.remove('active');
-  } else {
-    tabBlogBtn.classList.remove('active');
-    tabCalendarBtn.classList.add('active');
-    tabBlogContent.classList.remove('active');
-    tabCalendarContent.classList.add('active');
+    tabBlogBtn?.classList.add('active');
+    tabBlogContent?.classList.add('active');
+  } else if (tab === 'calendar') {
+    tabCalendarBtn?.classList.add('active');
+    tabCalendarContent?.classList.add('active');
+  } else if (tab === 'schedule') {
+    tabScheduleBtn?.classList.add('active');
+    tabScheduleContent?.classList.add('active');
   }
 }
 
@@ -713,6 +748,138 @@ function showToast(message, type = "info") {
     toast.style.transform = 'translateY(20px)';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+// --- LOGICA DE HORARIO (TAB 3) ---
+
+const dayNames = {
+  1: "Lunes",
+  2: "Martes",
+  3: "Miércoles",
+  4: "Jueves",
+  5: "Viernes"
+};
+
+async function refreshScheduleList() {
+  if (!scheduleListContainer) return;
+  scheduleListContainer.innerHTML = '';
+
+  try {
+    const schedule = await db.getSchedule();
+    if (schedule.length === 0) {
+      scheduleListContainer.innerHTML = '<p style="color: var(--text-muted); text-align:center; padding: 20px;">No hay bloques de horario registrados.</p>';
+      return;
+    }
+
+    schedule.forEach(item => {
+      const div = document.createElement('div');
+      div.classList.add('admin-list-item');
+      
+      const dayName = dayNames[item.day_of_week] || `Día ${item.day_of_week}`;
+      const subjectLabel = friendlySubjects[item.subject] || item.subject;
+
+      div.innerHTML = `
+        <div class="item-info">
+          <h4>${subjectLabel} (${dayName})</h4>
+          <p>⏰ ${item.start_time} - ${item.end_time} | Profesor: <strong>${item.teacher || 'No asignado'}</strong> ${item.notes ? `| Notas: <em>${item.notes}</em>` : ''}</p>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-secondary btn-sm edit-schedule-btn" data-id="${item.id}">Editar</button>
+          <button class="btn btn-danger btn-sm delete-schedule-btn" data-id="${item.id}">Eliminar</button>
+        </div>
+      `;
+
+      div.querySelector('.edit-schedule-btn').addEventListener('click', () => editScheduleItem(item));
+      div.querySelector('.delete-schedule-btn').addEventListener('click', () => deleteScheduleItem(item.id));
+
+      scheduleListContainer.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Error obteniendo listado de horario:", err);
+  }
+}
+
+function editScheduleItem(item) {
+  if (scheduleIdInput) scheduleIdInput.value = item.id;
+  if (scheduleDayInput) scheduleDayInput.value = item.day_of_week;
+  if (scheduleStartTimeInput) scheduleStartTimeInput.value = item.start_time;
+  if (scheduleEndTimeInput) scheduleEndTimeInput.value = item.end_time;
+  if (scheduleSubjectInput) scheduleSubjectInput.value = item.subject;
+  if (scheduleTeacherInput) scheduleTeacherInput.value = item.teacher || '';
+  if (scheduleNotesInput) scheduleNotesInput.value = item.notes || '';
+
+  if (formScheduleTitle) formScheduleTitle.textContent = '📝 Editar Bloque de Horario';
+  if (btnSaveSchedule) btnSaveSchedule.textContent = 'Actualizar Bloque';
+}
+
+function resetScheduleForm() {
+  if (scheduleIdInput) scheduleIdInput.value = '';
+  if (scheduleDayInput) scheduleDayInput.value = '';
+  if (scheduleStartTimeInput) scheduleStartTimeInput.value = '';
+  if (scheduleEndTimeInput) scheduleEndTimeInput.value = '';
+  if (scheduleSubjectInput) scheduleSubjectInput.value = '';
+  if (scheduleTeacherInput) scheduleTeacherInput.value = '';
+  if (scheduleNotesInput) scheduleNotesInput.value = '';
+
+  if (formScheduleTitle) formScheduleTitle.textContent = '🕒 Crear Bloque de Horario';
+  if (btnSaveSchedule) btnSaveSchedule.textContent = 'Guardar Bloque';
+}
+
+if (btnClearSchedule) {
+  btnClearSchedule.addEventListener('click', resetScheduleForm);
+}
+
+async function handleScheduleFormSubmit(e) {
+  e.preventDefault();
+
+  const id = scheduleIdInput.value;
+  const day_of_week = parseInt(scheduleDayInput.value, 10);
+  const start_time = scheduleStartTimeInput.value;
+  const end_time = scheduleEndTimeInput.value;
+  const subject = scheduleSubjectInput.value;
+  const teacher = scheduleTeacherInput.value.trim();
+  const notes = scheduleNotesInput.value.trim();
+
+  if (!day_of_week || !start_time || !end_time || !subject) {
+    showToast('Por favor, rellene todos los campos obligatorios.', 'error');
+    return;
+  }
+
+  const itemData = {
+    day_of_week,
+    start_time,
+    end_time,
+    subject,
+    teacher,
+    notes
+  };
+
+  if (id) {
+    itemData.id = id;
+  }
+
+  try {
+    await db.saveScheduleItem(itemData);
+    showToast('Bloque de horario guardado con éxito.', 'success');
+    resetScheduleForm();
+    await refreshScheduleList();
+  } catch (err) {
+    console.error("Error al guardar bloque de horario:", err);
+    showToast(err.message || 'Error al guardar el bloque de horario.', 'error');
+  }
+}
+
+async function deleteScheduleItem(id) {
+  if (!confirm('¿Está seguro de que desea eliminar este bloque de horario?')) return;
+
+  try {
+    await db.deleteScheduleItem(id);
+    showToast('Bloque de horario eliminado con éxito.', 'success');
+    await refreshScheduleList();
+  } catch (err) {
+    console.error("Error al eliminar bloque de horario:", err);
+    showToast(err.message || 'Error al eliminar el bloque de horario.', 'error');
+  }
 }
 
 // Iniciar
