@@ -1,4 +1,11 @@
-const { Pool } = require('pg');
+const pg = require('pg');
+const { Pool } = pg;
+
+// Configurar pg para devolver columnas DATE (OID 1082) como strings YYYY-MM-DD
+// Esto evita que se conviertan en objetos Date de JS y cambien de zona horaria o formato
+pg.types.setTypeParser(1082, function(val) {
+  return val;
+});
 
 let pool;
 
