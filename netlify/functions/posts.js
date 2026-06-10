@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
     }
 
     try {
-      const { id, title, excerpt, content, date, author, category } = JSON.parse(event.body || '{}');
+      const { id, title, excerpt, content, date, author, category, image_data } = JSON.parse(event.body || '{}');
 
       if (!title || !content || !date) {
         return {
@@ -69,20 +69,20 @@ exports.handler = async (event, context) => {
         // ACTUALIZAR
         const query = `
           UPDATE posts 
-          SET title = $1, excerpt = $2, content = $3, date = $4, author = $5, category = $6 
-          WHERE id = $7 
+          SET title = $1, excerpt = $2, content = $3, date = $4, author = $5, category = $6, image_data = $7
+          WHERE id = $8 
           RETURNING *
         `;
-        const values = [title, excerpt, content, date, author || 'Administrador', category || 'General', id];
+        const values = [title, excerpt, content, date, author || 'Administrador', category || 'General', image_data || '', id];
         queryResult = await client.query(query, values);
       } else {
         // CREAR NUEVO
         const query = `
-          INSERT INTO posts (title, excerpt, content, date, author, category) 
-          VALUES ($1, $2, $3, $4, $5, $6) 
+          INSERT INTO posts (title, excerpt, content, date, author, category, image_data) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7) 
           RETURNING *
         `;
-        const values = [title, excerpt, content, date, author || 'Administrador', category || 'General'];
+        const values = [title, excerpt, content, date, author || 'Administrador', category || 'General', image_data || ''];
         queryResult = await client.query(query, values);
       }
 

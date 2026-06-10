@@ -1,7 +1,7 @@
 import { db } from './db.js';
 
 // Estado global de la administración
-let activeTab = 'blog';
+let activeTab = 'calendar';
 let isShowingSourceCode = false;
 let quillInstance = null;
 
@@ -54,6 +54,9 @@ const postsListContainer = document.getElementById('posts-list-container');
 const formBlogTitle = document.getElementById('form-blog-title');
 const btnSavePost = document.getElementById('btn-save-post');
 const btnClearPost = document.getElementById('btn-clear-post');
+const postImageInput = document.getElementById('post-image-file');
+const postImageStatus = document.getElementById('post-image-status');
+const btnRemovePostImage = document.getElementById('btn-remove-post-image');
 
 // Elementos del DOM - Formularios & Contenedores Eventos
 const eventForm = document.getElementById('event-form');
@@ -70,12 +73,13 @@ const btnClearEvent = document.getElementById('btn-clear-event');
 // Elementos del DOM - Adjuntos de Eventos
 const eventAttachmentInput = document.getElementById('event-attachment');
 const eventQuizInput = document.getElementById('event-quiz-file');
-const attachmentStatus = document.getElementById('attachment-status');
+const attachmentListContainer = document.getElementById('attachment-list-container');
 const quizStatus = document.getElementById('quiz-status');
 
 // Variables de estado de archivos temporales
-let currentAttachment = { name: '', data: '' };
+let currentAttachments = []; // Array of { name, data }
 let currentQuiz = { name: '', data: '' };
+let currentPostImage = ''; // Base64 data string
 
 // Inicializar Aplicación
 async function initAdmin() {
@@ -344,7 +348,7 @@ if (blogForm) {
       return;
     }
 
-    const postData = { id, title, category, date, author, excerpt, content };
+    const postData = { id, title, category, date, author, excerpt, content, image_data: currentPostImage };
 
     try {
       await db.savePost(postData);
@@ -378,6 +382,10 @@ function editPost(post) {
   if (htmlEditorTextarea) {
     htmlEditorTextarea.value = post.content || '';
   }
+
+  currentPostImage = post.image_data || '';
+  if (postImageInput) postImageInput.value = '';
+  updatePostImageStatus(true);
 
   if (formBlogTitle) formBlogTitle.textContent = '📝 Editar Publicación';
   if (btnSavePost) btnSavePost.textContent = 'Actualizar Publicación';
@@ -424,6 +432,10 @@ function resetBlogForm() {
     btnToggleHtml.click();
   }
 
+  currentPostImage = '';
+  if (postImageInput) postImageInput.value = '';
+  updatePostImageStatus(false);
+
   // Poner fecha de hoy por defecto
   const today = new Date();
   if (postDateInput) {
@@ -438,29 +450,107 @@ if (btnClearPost) {
   btnClearPost.addEventListener('click', resetBlogForm);
 }
 
+// Helpers para actualizar el estado visual de la imagen con opción de Quitar
+function updatePostImageStatus(isExisting = false) {
+  if (!postImageStatus || !btnRemovePostImage) return;
+  if (currentPostImage) {
+    const label = isExisting ? 'Imagen existente en el post' : 'Imagen seleccionada';
+    postImageStatus.textContent = `${label} (~${Math.round(currentPostImage.length * 0.75 / 1024)} KB)`;
+    postImageStatus.style.display = 'block';
+    btnRemovePostImage.style.display = 'inline-block';
+  } else {
+    postImageStatus.style.display = 'none';
+    btnRemovePostImage.style.display = 'none';
+  }
+}
+
+// Configurar escuchadores para la subida de imagen de blog
+if (postImageInput) {
+  postImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      currentPostImage = '';
+      updatePostImageStatus(false);
+      return;
+    }
+    
+    // Validar tamaño máximo (3.5MB)
+    const maxSize = 3.5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast('La imagen supera el límite de 3.5MB permitido.', 'error');
+      postImageInput.value = '';
+      currentPostImage = '';
+      updatePostImageStatus(false);
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      currentPostImage = evt.target.result; // DataURL
+      updatePostImageStatus(false);
+    };
+    reader.onerror = function() {
+      showToast('Error al leer el archivo de imagen.', 'error');
+      postImageInput.value = '';
+      currentPostImage = '';
+      updatePostImageStatus(false);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (btnRemovePostImage) {
+  btnRemovePostImage.addEventListener('click', () => {
+    currentPostImage = '';
+    if (postImageInput) postImageInput.value = '';
+    updatePostImageStatus(false);
+  });
+}
+
 
 // --- LOGICA DE CALENDARIO (TAB 2) ---
 
 // Helpers para actualizar el estado visual de los archivos con opción de Quitar
-function updateAttachmentStatus(isExisting = false) {
-  if (!attachmentStatus) return;
-  if (currentAttachment.name) {
-    const label = isExisting ? 'Archivo existente' : 'Archivo seleccionado';
-    attachmentStatus.innerHTML = `${label}: ${currentAttachment.name} <a href="#" id="remove-attachment-btn" style="color: var(--danger); margin-left: 8px; font-weight: normal; text-decoration: underline;">Quitar</a>`;
-    attachmentStatus.style.display = 'block';
-    
-    const removeBtn = document.getElementById('remove-attachment-btn');
-    if (removeBtn) {
-      removeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        currentAttachment = { name: '', data: '' };
-        attachmentStatus.style.display = 'none';
-        if (eventAttachmentInput) eventAttachmentInput.value = '';
-      });
-    }
-  } else {
-    attachmentStatus.style.display = 'none';
+function updateAttachmentListUI(isExisting = false) {
+  if (!attachmentListContainer) return;
+  attachmentListContainer.innerHTML = '';
+  
+  if (currentAttachments.length === 0) {
+    attachmentListContainer.style.display = 'none';
+    return;
   }
+  
+  attachmentListContainer.style.display = 'flex';
+  currentAttachments.forEach((file, index) => {
+    const fileDiv = document.createElement('div');
+    fileDiv.style.display = 'flex';
+    fileDiv.style.alignItems = 'center';
+    fileDiv.style.justifyContent = 'space-between';
+    fileDiv.style.padding = '6px 10px';
+    fileDiv.style.background = '#f1f5f9';
+    fileDiv.style.border = '1px solid #cbd5e1';
+    fileDiv.style.borderRadius = 'var(--radius-sm)';
+    fileDiv.style.fontSize = '0.875rem';
+    fileDiv.style.color = '#334155';
+    
+    const label = isExisting ? 'Archivo existente' : 'Archivo seleccionado';
+    
+    fileDiv.innerHTML = `
+      <span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;" title="${file.name}">
+        📎 [${label}] ${file.name}
+      </span>
+      <button type="button" class="btn-remove-attachment-item" data-index="${index}" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.25rem; font-weight: bold; padding: 0 4px; line-height: 1;">&times;</button>
+    `;
+    
+    fileDiv.querySelector('.btn-remove-attachment-item').addEventListener('click', (evt) => {
+      evt.preventDefault();
+      currentAttachments.splice(index, 1);
+      updateAttachmentListUI(false);
+      if (eventAttachmentInput) eventAttachmentInput.value = '';
+    });
+    
+    attachmentListContainer.appendChild(fileDiv);
+  });
 }
 
 function updateQuizStatus(isExisting = false) {
@@ -486,39 +576,44 @@ function updateQuizStatus(isExisting = false) {
 
 // Configurar escuchadores para la subida de archivos
 if (eventAttachmentInput) {
-  eventAttachmentInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      currentAttachment = { name: '', data: '' };
-      if (attachmentStatus) attachmentStatus.style.display = 'none';
+  eventAttachmentInput.addEventListener('change', async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) {
       return;
     }
     
-    // Validar tamaño máximo de 5MB
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      showToast('El archivo supera el límite permitido de 5MB.', 'error');
-      eventAttachmentInput.value = '';
-      currentAttachment = { name: '', data: '' };
-      if (attachmentStatus) attachmentStatus.style.display = 'none';
-      return;
+    const maxSize = 5 * 1024 * 1024; // 5MB por archivo
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > maxSize) {
+        showToast(`El archivo "${file.name}" supera el límite permitido de 5MB.`, 'error');
+        continue;
+      }
+      
+      // Evitar duplicados por nombre
+      if (currentAttachments.some(a => a.name === file.name)) {
+        continue;
+      }
+
+      try {
+        const fileData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (evt) => resolve(evt.target.result);
+          reader.onerror = () => reject(new Error('Error al leer el archivo.'));
+          reader.readAsDataURL(file);
+        });
+        
+        currentAttachments.push({
+          name: file.name,
+          data: fileData
+        });
+      } catch (err) {
+        showToast(`Error al leer el archivo "${file.name}".`, 'error');
+      }
     }
     
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      currentAttachment = {
-        name: file.name,
-        data: evt.target.result
-      };
-      updateAttachmentStatus(false);
-    };
-    reader.onerror = function() {
-      showToast('Error al leer el archivo.', 'error');
-      eventAttachmentInput.value = '';
-      currentAttachment = { name: '', data: '' };
-      if (attachmentStatus) attachmentStatus.style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+    updateAttachmentListUI(false);
   });
 }
 
@@ -628,8 +723,8 @@ if (eventForm) {
       date, 
       description, 
       subject,
-      attachment_name: currentAttachment.name,
-      attachment_data: currentAttachment.data,
+      attachment_name: currentAttachments.length > 0 ? JSON.stringify(currentAttachments.map(a => a.name)) : '',
+      attachment_data: currentAttachments.length > 0 ? JSON.stringify(currentAttachments) : '',
       quiz_name: currentQuiz.name,
       quiz_data: currentQuiz.data
     };
@@ -647,7 +742,20 @@ if (eventForm) {
 }
 
 // Editar Evento (cargar en formulario)
-function editEvent(ev) {
+async function editEvent(ev) {
+  // Limpiar inputs y mostrar estado de carga temporal
+  if (eventAttachmentInput) eventAttachmentInput.value = '';
+  if (eventQuizInput) eventQuizInput.value = '';
+  
+  if (attachmentListContainer) {
+    attachmentListContainer.innerHTML = ev.attachment_name ? `⏳ Cargando archivos adjuntos...` : '';
+    attachmentListContainer.style.display = ev.attachment_name ? 'flex' : 'none';
+  }
+  if (quizStatus) {
+    quizStatus.innerHTML = `⏳ Cargando cuestionario de <strong>${ev.quiz_name || 'la actividad'}</strong>...`;
+    quizStatus.style.display = ev.quiz_name ? 'block' : 'none';
+  }
+
   eventIdInput.value = ev.id;
   eventTitleInput.value = ev.title;
   if (eventSubjectInput) {
@@ -656,27 +764,60 @@ function editEvent(ev) {
   eventDateInput.value = ev.date;
   eventDescriptionInput.value = ev.description;
 
-  // Cargar estado de adjuntos si existen
-  currentAttachment = {
-    name: ev.attachment_name || '',
-    data: ev.attachment_data || ''
-  };
-  currentQuiz = {
-    name: ev.quiz_name || '',
-    data: ev.quiz_data || ''
-  };
-
-  updateAttachmentStatus(true);
-  updateQuizStatus(true);
-
-  if (eventAttachmentInput) eventAttachmentInput.value = '';
-  if (eventQuizInput) eventQuizInput.value = '';
-
   if (formEventTitle) formEventTitle.textContent = '🗓️ Editar Actividad';
   if (btnSaveEvent) btnSaveEvent.textContent = 'Actualizar Actividad';
 
   // Desplazar al formulario
   eventForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    // Obtener detalles completos incluyendo los adjuntos pesados en segundo plano
+    const fullEv = await db.getEventById(ev.id);
+    
+    currentAttachments = [];
+    if (fullEv && fullEv.attachment_data) {
+      if (fullEv.attachment_data.trim().startsWith('[')) {
+        try {
+          currentAttachments = JSON.parse(fullEv.attachment_data);
+        } catch (err) {
+          currentAttachments = [{
+            name: fullEv.attachment_name || 'Material adjunto',
+            data: fullEv.attachment_data
+          }];
+        }
+      } else if (fullEv.attachment_name) {
+        currentAttachments = [{
+          name: fullEv.attachment_name,
+          data: fullEv.attachment_data
+        }];
+      }
+    }
+    
+    currentQuiz = {
+      name: fullEv.quiz_name || '',
+      data: fullEv.quiz_data || ''
+    };
+
+    updateAttachmentListUI(true);
+    updateQuizStatus(true);
+  } catch (err) {
+    console.error("Error al cargar archivos adjuntos en editEvent:", err);
+    showToast("Error al cargar archivos adjuntos de la actividad.", "error");
+    
+    // Fallback con nombres conocidos
+    let parsedNames = [];
+    try {
+      parsedNames = JSON.parse(ev.attachment_name);
+    } catch(e) {
+      if (ev.attachment_name) parsedNames = [ev.attachment_name];
+    }
+    
+    currentAttachments = parsedNames.map(name => ({ name, data: '' }));
+    currentQuiz = { name: ev.quiz_name || '', data: '' };
+    
+    updateAttachmentListUI(true);
+    updateQuizStatus(true);
+  }
 }
 
 // Eliminar Evento
@@ -707,15 +848,15 @@ function resetEventForm() {
   if (eventSubjectInput) eventSubjectInput.value = '';
 
   // Limpiar variables de archivos y UI de estado
-  currentAttachment = { name: '', data: '' };
+  currentAttachments = [];
   currentQuiz = { name: '', data: '' };
 
   if (eventAttachmentInput) eventAttachmentInput.value = '';
   if (eventQuizInput) eventQuizInput.value = '';
 
-  if (attachmentStatus) {
-    attachmentStatus.textContent = '';
-    attachmentStatus.style.display = 'none';
+  if (attachmentListContainer) {
+    attachmentListContainer.innerHTML = '';
+    attachmentListContainer.style.display = 'none';
   }
   if (quizStatus) {
     quizStatus.textContent = '';

@@ -20,15 +20,38 @@ exports.handler = async (event, context) => {
   // --- LEER EVENTOS (GET) ---
   if (method === 'GET') {
     try {
+      const id = event.queryStringParameters ? event.queryStringParameters.id : null;
       const client = await pool.connect();
-      const result = await client.query('SELECT * FROM events ORDER BY date ASC, created_at ASC');
-      client.release();
+      
+      if (id) {
+        // Obtener una actividad en particular con todos sus campos (incluyendo adjuntos pesados)
+        const result = await client.query('SELECT * FROM events WHERE id = $1', [id]);
+        client.release();
+        
+        if (result.rows.length === 0) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({ error: 'Actividad no encontrada.' })
+          };
+        }
+        
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(result.rows[0])
+        };
+      } else {
+        // Obtener listado de actividades sin los adjuntos pesados en Base64 para carga veloz
+        const result = await client.query('SELECT id, title, date, description, subject, attachment_name, quiz_name, created_at FROM events ORDER BY date ASC, created_at ASC');
+        client.release();
 
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(result.rows)
-      };
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(result.rows)
+        };
+      }
     } catch (err) {
       console.error("Error al obtener eventos de PostgreSQL:", err);
       return {

@@ -75,13 +75,13 @@
 
       <!-- Selector de Pestañas (Tabs) -->
       <nav class="admin-tabs" aria-label="Menú del Administrador">
-        <button class="tab-btn active" id="tab-blog-btn">📝 Gestionar Blog</button>
-        <button class="tab-btn" id="tab-calendar-btn">🗓️ Gestionar Calendario</button>
+        <button class="tab-btn active" id="tab-calendar-btn">🗓️ Gestionar Calendario</button>
+        <button class="tab-btn" id="tab-blog-btn">📝 Gestionar Blog</button>
         <button class="tab-btn" id="tab-schedule-btn">🕒 Gestionar Horario</button>
       </nav>
 
       <!-- SECCIÓN TAB 1: GESTIÓN DEL BLOG -->
-      <section class="tab-content active" id="tab-blog-content">
+      <section class="tab-content" id="tab-blog-content">
         <div class="admin-grid">
           
           <!-- Formulario de Publicación -->
@@ -122,6 +122,14 @@
                 </div>
               </div>
 
+              <!-- Campo para Subir Imagen (Opcional, útil para volantes/circulares) -->
+              <div class="form-group" style="margin-top: 10px;">
+                <label for="post-image-file">Imagen de la Lectura / Aviso (Opcional)</label>
+                <input type="file" id="post-image-file" accept="image/*" class="form-control">
+                <small id="post-image-status" style="color: var(--success); font-weight: 600; display: none; margin-top: 4px;"></small>
+                <button type="button" id="btn-remove-post-image" class="btn btn-danger btn-sm" style="display: none; margin-top: 8px;">Quitar Imagen</button>
+              </div>
+
               <!-- Editor Enriquecido Quill con Alternancia HTML -->
               <div class="form-group" style="margin-top: 10px;">
                 <label>Contenido del Artículo</label>
@@ -160,7 +168,7 @@
       </section>
 
       <!-- SECCIÓN TAB 2: GESTIÓN DEL CALENDARIO -->
-      <section class="tab-content" id="tab-calendar-content">
+      <section class="tab-content active" id="tab-calendar-content">
         <!-- Advertencia Google Calendar Activo (oculto por defecto) -->
         <div id="gcal-warning-box" class="card" style="display: none; background-color: var(--accent-light); border-color: var(--accent); margin-bottom: 24px; padding: 20px;">
           <p style="color: hsl(var(--accent-h), var(--accent-s), 25%); font-weight: 700;">
@@ -215,9 +223,9 @@
               <!-- Carga de Archivos Adjuntos (Referencia y Cuestionarios) -->
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 15px;">
                 <div class="form-group">
-                  <label for="event-attachment">Material de Referencia (Opcional)</label>
-                  <input type="file" id="event-attachment" class="form-control">
-                  <small id="attachment-status" style="color: var(--primary); font-weight: 600; display: none; margin-top: 4px;"></small>
+                  <label for="event-attachment">Material de Referencia (Opcional - Múltiple)</label>
+                  <input type="file" id="event-attachment" class="form-control" multiple>
+                  <div id="attachment-list-container" style="color: var(--text); display: none; margin-top: 8px; flex-direction: column; gap: 6px;"></div>
                 </div>
                 <div class="form-group">
                   <label for="event-quiz-file">Cuestionario de Práctica (Archivo HTML)</label>

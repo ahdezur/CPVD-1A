@@ -36,6 +36,8 @@ const blogModalAuthor = document.getElementById('blog-modal-author');
 const blogModalCategory = document.getElementById('blog-modal-category');
 const blogModalBody = document.getElementById('blog-modal-body');
 const closeBlogModalBtn = document.getElementById('close-blog-modal');
+const blogModalImageContainer = document.getElementById('blog-modal-image-container');
+const blogModalImage = document.getElementById('blog-modal-image');
 
 // Elementos del Modal de Cuestionario
 const quizModal = document.getElementById('quiz-modal');
@@ -258,51 +260,110 @@ function showEventDetails(events, dateString) {
     eventModalTitle.textContent = `${icon} ${ev.title}`;
     eventModalDescription.textContent = ev.description;
 
-    let hasAttachments = false;
-    
-    if (ev.attachment_data && ev.attachment_name) {
-      if (downloadAttachment && attachmentName) {
-        downloadAttachment.href = ev.attachment_data;
-        downloadAttachment.download = ev.attachment_name;
-        attachmentName.textContent = ev.attachment_name;
-        downloadAttachment.style.display = 'inline-flex';
-      }
-      hasAttachments = true;
-    } else {
-      if (downloadAttachment) downloadAttachment.style.display = 'none';
-    }
+    // Ocultar botones globales al inicio mientras cargamos en segundo plano
+    if (downloadAttachment) downloadAttachment.style.display = 'none';
+    if (viewQuizBtn) viewQuizBtn.style.display = 'none';
 
-    if (ev.quiz_data && ev.quiz_name) {
-      if (viewQuizBtn && quizName) {
-        quizName.textContent = ev.quiz_name;
-        viewQuizBtn.style.display = 'inline-flex';
-        viewQuizBtn.onclick = (evt) => {
-          evt.preventDefault();
-          openQuizModal(ev.quiz_name, ev.title, ev.quiz_data);
-        };
+    if (ev.attachment_name || ev.quiz_name) {
+      if (attachmentsContainer) {
+        attachmentsContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">⏳ Cargando archivos adjuntos...</span>';
+        attachmentsContainer.style.display = 'flex';
       }
-      hasAttachments = true;
-    } else {
-      if (viewQuizBtn) viewQuizBtn.style.display = 'none';
-    }
+      
+      db.getEventById(ev.id).then(fullEv => {
+        if (!attachmentsContainer) return;
+        attachmentsContainer.innerHTML = ''; // Limpiar contenedor
+        attachmentsContainer.style.flexWrap = 'wrap';
 
-    if (attachmentsContainer) {
-      attachmentsContainer.style.display = hasAttachments ? 'flex' : 'none';
+        let hasAttachments = false;
+        
+        // Renderizar múltiples adjuntos (o fallback simple)
+        if (fullEv && fullEv.attachment_data) {
+          let attachments = [];
+          if (fullEv.attachment_data.trim().startsWith('[')) {
+            try {
+              attachments = JSON.parse(fullEv.attachment_data);
+            } catch (err) {
+              attachments = [{ name: fullEv.attachment_name || 'Material adjunto', data: fullEv.attachment_data }];
+            }
+          } else if (fullEv.attachment_name) {
+            attachments = [{ name: fullEv.attachment_name, data: fullEv.attachment_data }];
+          }
+
+          attachments.forEach(att => {
+            const dlBtn = document.createElement('a');
+            dlBtn.href = att.data;
+            dlBtn.download = att.name;
+            dlBtn.className = 'btn btn-secondary';
+            dlBtn.style.display = 'inline-flex';
+            dlBtn.style.alignItems = 'center';
+            dlBtn.style.gap = '6px';
+            dlBtn.style.margin = '4px';
+            dlBtn.innerHTML = `<span>📎</span> <strong>${att.name}</strong>`;
+            attachmentsContainer.appendChild(dlBtn);
+            hasAttachments = true;
+          });
+        }
+
+        // Renderizar cuestionario
+        if (fullEv && fullEv.quiz_data && fullEv.quiz_name) {
+          const viewQuizBtnReal = document.createElement('button');
+          viewQuizBtnReal.className = 'btn btn-primary';
+          viewQuizBtnReal.style.backgroundColor = 'var(--success)';
+          viewQuizBtnReal.style.border = 'none';
+          viewQuizBtnReal.style.display = 'inline-flex';
+          viewQuizBtnReal.style.alignItems = 'center';
+          viewQuizBtnReal.style.gap = '6px';
+          viewQuizBtnReal.style.margin = '4px';
+          viewQuizBtnReal.innerHTML = `<span>📝</span> <strong>${fullEv.quiz_name}</strong> (Hacer Cuestionario)`;
+          viewQuizBtnReal.onclick = (evt) => {
+            evt.preventDefault();
+            openQuizModal(fullEv.quiz_name, fullEv.title, fullEv.quiz_data);
+          };
+          attachmentsContainer.appendChild(viewQuizBtnReal);
+          hasAttachments = true;
+        }
+
+        attachmentsContainer.style.display = hasAttachments ? 'flex' : 'none';
+      }).catch(err => {
+        console.error("Error al cargar archivos adjuntos:", err);
+        if (attachmentsContainer) {
+          attachmentsContainer.innerHTML = '<span style="color: var(--danger); font-size: 0.9rem;">⚠️ Error al cargar los archivos adjuntos.</span>';
+        }
+      });
+    } else {
+      if (attachmentsContainer) {
+        attachmentsContainer.style.display = 'none';
+      }
     }
   } else {
     eventModalTitle.textContent = "Múltiples Actividades";
     eventModalDescription.innerHTML = events.map(e => {
       const icon = e.subject ? subjectIcons[e.subject] || '' : '';
       
-      const attachmentBtn = e.attachment_data && e.attachment_name 
-        ? `<a href="${e.attachment_data}" download="${e.attachment_name}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; margin-top: 8px; margin-right: 8px; text-align: left; text-decoration: none;"><span style="margin-right: 5px;">📎</span> Material de Referencia: <strong style="margin-left: 5px; word-break: break-all;">${e.attachment_name}</strong></a>` 
+      let attachmentPlaceholders = '';
+      if (e.attachment_name) {
+        let names = [];
+        if (e.attachment_name.trim().startsWith('[')) {
+          try {
+            names = JSON.parse(e.attachment_name);
+          } catch(err) {
+            names = [e.attachment_name];
+          }
+        } else {
+          names = [e.attachment_name];
+        }
+        
+        attachmentPlaceholders = names.map((name, idx) => {
+          return `<a href="#" id="multi-attachment-${e.id}-${idx}" class="btn btn-secondary btn-sm disabled" style="display: inline-flex; align-items: center; margin-top: 8px; margin-right: 8px; text-align: left; text-decoration: none; opacity: 0.6; cursor: wait;"><span style="margin-right: 5px;">📎</span> Cargando... <strong>${name}</strong></a>`;
+        }).join('');
+      }
+        
+      const quizBtn = e.quiz_name 
+        ? `<button id="multi-quiz-${e.id}" class="btn btn-primary btn-sm" disabled style="display: inline-flex; align-items: center; margin-top: 8px; background-color: var(--success); text-align: left; border: none; cursor: wait; color: white; opacity: 0.6; font-family: var(--font-body); font-size: 0.875rem;"><span style="margin-right: 5px;">📝</span> Cargando... <strong>${e.quiz_name}</strong></button>` 
         : '';
         
-      const quizBtn = e.quiz_data && e.quiz_name 
-        ? `<button class="btn btn-primary btn-sm view-inline-quiz-btn" data-event-id="${e.id}" style="display: inline-flex; align-items: center; margin-top: 8px; background-color: var(--success); text-align: left; border: none; cursor: pointer; color: white; font-family: var(--font-body); font-size: 0.875rem;"><span style="margin-right: 5px;">📝</span> Ver Cuestionario: <strong style="margin-left: 5px; word-break: break-all;">${e.quiz_name}</strong></button>` 
-        : '';
-        
-      const buttonsRow = (attachmentBtn || quizBtn) ? `<div class="event-modal-buttons-row">${attachmentBtn}${quizBtn}</div>` : '';
+      const buttonsRow = (attachmentPlaceholders || quizBtn) ? `<div class="event-modal-buttons-row" style="display: flex; flex-wrap: wrap;">${attachmentPlaceholders}${quizBtn}</div>` : '';
 
       return `<div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
         <h4 style="margin-bottom: 8px; font-size: 1.1rem; color: var(--primary);">${icon} ${e.title}</h4>
@@ -311,17 +372,57 @@ function showEventDetails(events, dateString) {
       </div>`;
     }).join('');
 
-    // Configurar listeners de clic para los botones inline de ver cuestionario
-    const inlineQuizBtns = eventModalDescription.querySelectorAll('.view-inline-quiz-btn');
-    inlineQuizBtns.forEach(btn => {
-      btn.addEventListener('click', (evt) => {
-        evt.preventDefault();
-        const evId = btn.getAttribute('data-event-id');
-        const targetEvent = events.find(item => item.id == evId);
-        if (targetEvent && targetEvent.quiz_data) {
-          openQuizModal(targetEvent.quiz_name, targetEvent.title, targetEvent.quiz_data);
-        }
-      });
+    // Cargar los archivos adjuntos y cuestionarios para cada evento de forma asíncrona
+    events.forEach(e => {
+      if (e.attachment_name || e.quiz_name) {
+        db.getEventById(e.id).then(fullEv => {
+          if (!fullEv) return;
+          
+          // Renderizar archivos adjuntos
+          let attachments = [];
+          if (fullEv.attachment_data) {
+            if (fullEv.attachment_data.trim().startsWith('[')) {
+              try {
+                attachments = JSON.parse(fullEv.attachment_data);
+              } catch(err) {
+                attachments = [{ name: fullEv.attachment_name, data: fullEv.attachment_data }];
+              }
+            } else if (fullEv.attachment_name) {
+              attachments = [{ name: fullEv.attachment_name, data: fullEv.attachment_data }];
+            }
+          }
+
+          attachments.forEach((att, idx) => {
+            const dlBtn = document.getElementById(`multi-attachment-${e.id}-${idx}`);
+            if (dlBtn && att.data) {
+              dlBtn.href = att.data;
+              dlBtn.download = att.name;
+              dlBtn.style.opacity = '1';
+              dlBtn.style.cursor = 'pointer';
+              dlBtn.classList.remove('disabled');
+              dlBtn.innerHTML = `<span style="margin-right: 5px;">📎</span> Material: <strong>${att.name}</strong>`;
+            } else if (dlBtn) {
+              dlBtn.style.display = 'none';
+            }
+          });
+          
+          const qzBtn = document.getElementById(`multi-quiz-${e.id}`);
+          if (qzBtn && fullEv.quiz_data) {
+            qzBtn.disabled = false;
+            qzBtn.style.opacity = '1';
+            qzBtn.style.cursor = 'pointer';
+            qzBtn.innerHTML = `<span style="margin-right: 5px;">📝</span> Cuestionario: <strong>${fullEv.quiz_name}</strong>`;
+            qzBtn.onclick = (evt) => {
+              evt.preventDefault();
+              openQuizModal(fullEv.quiz_name, fullEv.title, fullEv.quiz_data);
+            };
+          } else if (qzBtn) {
+            qzBtn.style.display = 'none';
+          }
+        }).catch(err => {
+          console.error(`Error al cargar adjuntos para evento de día múltiple con ID ${e.id}:`, err);
+        });
+      }
     });
 
     // Ocultar los botones globales del final del modal
@@ -413,7 +514,15 @@ function renderBlogPosts() {
     const formattedDate = formatSimpleDate(post.date);
     const catClass = (post.category || 'General').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
+    // Previsualización de imagen si existe
+    const imagePreviewHtml = post.image_data 
+      ? `<div class="blog-card-image-preview" style="height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); background: #f8fafc; display: flex; align-items: center; justify-content: center;">
+           <img src="${post.image_data}" alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">
+         </div>`
+      : '';
+
     card.innerHTML = `
+      ${imagePreviewHtml}
       <div class="blog-meta">
         <span class="blog-category ${catClass}">${post.category || 'General'}</span>
         <time datetime="${post.date}">${formattedDate}</time>
@@ -447,6 +556,15 @@ function showBlogReading(post) {
   const catClass = (post.category || 'General').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   blogModalCategory.classList.add(catClass);
   
+  // Cargar imagen en tamaño completo si existe
+  if (post.image_data && blogModalImage && blogModalImageContainer) {
+    blogModalImage.src = post.image_data;
+    blogModalImageContainer.style.display = 'block';
+  } else {
+    if (blogModalImage) blogModalImage.src = '';
+    if (blogModalImageContainer) blogModalImageContainer.style.display = 'none';
+  }
+
   // Inyectar el HTML enriquecido guardado desde el panel admin
   blogModalBody.innerHTML = post.content;
 
@@ -534,18 +652,52 @@ function renderSchedule() {
           cell.classList.add('active-today');
         }
 
-        // Buscar asignatura asignada a este bloque y día
-        const classItem = scheduleList.find(item => item.day_of_week === day && item.start_time === slot.start);
+        // Buscar todas las asignaturas asignadas a este bloque y día
+        const matchingClasses = scheduleList.filter(item => item.day_of_week === day && item.start_time === slot.start);
 
-        if (classItem) {
-          cell.classList.add(`subject-${classItem.subject}`);
-          const cleanSubject = subjectLabels[classItem.subject] || classItem.subject;
-          
-          cell.innerHTML = `
-            <div class="subject-name">${cleanSubject}</div>
-            ${classItem.teacher ? `<div class="teacher-name">${classItem.teacher}</div>` : ''}
-            ${classItem.notes ? `<div class="class-notes" title="${classItem.notes}">${classItem.notes}</div>` : ''}
-          `;
+        if (matchingClasses.length > 0) {
+          if (matchingClasses.length === 1) {
+            const classItem = matchingClasses[0];
+            cell.classList.add(`subject-${classItem.subject}`);
+            const cleanSubject = subjectLabels[classItem.subject] || classItem.subject;
+            cell.innerHTML = `
+              <div class="subject-name">${cleanSubject}</div>
+              ${classItem.teacher ? `<div class="teacher-name">${classItem.teacher}</div>` : ''}
+              ${classItem.notes ? `<div class="class-notes" title="${classItem.notes}">${classItem.notes}</div>` : ''}
+            `;
+          } else {
+            // Múltiples asignaturas en el mismo bloque y día (ej. electivos)
+            const subjectColors = {
+              lenguaje: "#4a90e2",
+              science: "#7ed321",
+              math: "#f5a623",
+              musica: "#50e3c2",
+              ingles: "#bd10e0",
+              ef: "#e25c5c",
+              religion: "#4a4a4a",
+              consejo: "#7ed3c1",
+              tecnologia: "#00c0f9",
+              arte: "#9013fe"
+            };
+
+            cell.style.display = 'flex';
+            cell.style.flexDirection = 'column';
+            cell.style.gap = '8px';
+            cell.style.justifyContent = 'flex-start';
+            cell.style.alignItems = 'stretch';
+
+            cell.innerHTML = matchingClasses.map(classItem => {
+              const cleanSubject = subjectLabels[classItem.subject] || classItem.subject;
+              const color = subjectColors[classItem.subject] || 'var(--primary)';
+              return `
+                <div style="border-left: 3px solid ${color}; padding-left: 8px; text-align: left; width: 100%;">
+                  <div class="subject-name" style="font-weight: 700; font-size: 0.85rem; margin-bottom: 2px;">${cleanSubject}</div>
+                  ${classItem.teacher ? `<div class="teacher-name" style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">${classItem.teacher}</div>` : ''}
+                  ${classItem.notes ? `<div class="class-notes" style="font-size: 0.7rem; padding: 2px 4px; border-left: 1.5px solid ${color}; display: inline-block;" title="${classItem.notes}">${classItem.notes}</div>` : ''}
+                </div>
+              `;
+            }).join('<div style="border-top: 1px dashed var(--border-color); width: 100%;"></div>');
+          }
         } else {
           cell.classList.add('empty-cell');
           cell.textContent = '-';
@@ -634,6 +786,13 @@ function closeAllModals() {
   if (quizIframe) {
     quizIframe.removeAttribute('srcdoc');
     quizIframe.src = 'about:blank';
+  }
+  // Limpiar imagen de blog para liberar memoria
+  if (blogModalImage) {
+    blogModalImage.src = '';
+  }
+  if (blogModalImageContainer) {
+    blogModalImageContainer.style.display = 'none';
   }
 }
 

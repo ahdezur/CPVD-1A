@@ -220,7 +220,8 @@ class Database {
             content: post.content,
             date: post.date,
             author: post.author,
-            category: post.category
+            category: post.category,
+            image_data: post.image_data
           })
           .eq('id', post.id)
           .select();
@@ -335,7 +336,7 @@ class Database {
       try {
         const { data, error } = await this.supabaseClient
           .from('events')
-          .select('*')
+          .select('id, date, title, description, subject, attachment_name, quiz_name, created_at')
           .order('date', { ascending: true });
         if (error) throw error;
         return data;
@@ -348,6 +349,42 @@ class Database {
     } else {
       const events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
       return events.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+  }
+
+  async getEventById(id) {
+    if (this.useApi) {
+      try {
+        const response = await fetch(`/api/events?id=${id}`);
+        if (!response.ok) throw new Error("Error en la API al obtener los detalles del evento.");
+        return await response.json();
+      } catch (err) {
+        console.warn("Fallo de conexión en la API de evento individual. Cayendo en localStorage.", err);
+        const events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
+        const found = events.find(e => e.id == id);
+        return found || null;
+      }
+    }
+
+    if (this.useSupabase) {
+      try {
+        const { data, error } = await this.supabaseClient
+          .from('events')
+          .select('*')
+          .eq('id', id)
+          .single();
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn("Fallo de conexión en Supabase al obtener evento individual. Cayendo en localStorage.", err);
+        const events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
+        const found = events.find(e => e.id == id);
+        return found || null;
+      }
+    } else {
+      const events = JSON.parse(localStorage.getItem('cpdv_events') || '[]');
+      const found = events.find(e => e.id == id);
+      return found || null;
     }
   }
 
