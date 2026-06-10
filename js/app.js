@@ -577,15 +577,16 @@ function showBlogReading(post) {
 // Nombres amigables de asignaturas para visualización
 const subjectLabels = {
   lenguaje: "📖 Lenguaje",
-  science: "🔬 Science",
+  science: "🔬 Science & Society",
   math: "🔢 Math",
-  musica: "🎵 Música",
-  ingles: "🇬🇧 Inglés",
-  ef: "🏃🏽 Ed. Física",
+  musica: "🎵 Music",
+  ingles: "🇬🇧 English",
+  ef: "🏃🏽 Physics Education",
   religion: "🕊️ Religión",
-  consejo: "🤝 Consejo Curso",
-  tecnologia: "💻 Tecnología",
-  arte: "🎨 Arte"
+  consejo: "🤝 Councelling",
+  tecnologia: "💻 Technology",
+  arte: "🎨 Arts",
+  orientacion: "🧭 Orientación"
 };
 
 function renderSchedule() {
@@ -677,7 +678,8 @@ function renderSchedule() {
               religion: "#4a4a4a",
               consejo: "#7ed3c1",
               tecnologia: "#00c0f9",
-              arte: "#9013fe"
+              arte: "#9013fe",
+              orientacion: "#ff9f43"
             };
 
             cell.style.display = 'flex';

@@ -656,15 +656,16 @@ if (eventQuizInput) {
 
 const friendlySubjects = {
   lenguaje: "📖 Lenguaje",
-  science: "🔬 Science",
+  science: "🔬 Science & Society",
   math: "🔢 Math",
-  musica: "🎵 Música",
-  ingles: "🇬🇧 Inglés",
-  ef: "🏃🏽 Educación Física",
+  musica: "🎵 Music",
+  ingles: "🇬🇧 English",
+  ef: "🏃🏽 Physics Education",
   religion: "🕊️ Religión",
-  consejo: "🤝 Consejo de Curso",
-  tecnologia: "💻 Tecnología",
-  arte: "🎨 Arte"
+  consejo: "🤝 Councelling",
+  tecnologia: "💻 Technology",
+  arte: "🎨 Arts",
+  orientacion: "🧭 Orientación"
 };
 
 async function refreshEventList() {

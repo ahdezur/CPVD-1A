@@ -1076,6 +1076,18 @@ footer {
   border-left: 4px solid hsl(330, 80%, 55%) !important;
 }
 
+/* Orientación: Coral/Naranja cálido */
+.day.subject-orientacion {
+  background-color: hsl(28, 100%, 96%) !important;
+  border-color: hsl(28, 90%, 85%) !important;
+}
+.day.subject-orientacion .day-number {
+  color: hsl(28, 80%, 40%) !important;
+}
+.event-item.subject-orientacion {
+  border-left: 4px solid hsl(28, 90%, 55%) !important;
+}
+
 /* --- RESPONSIVE OPTIMIZATIONS (MOBILE & TABLET) --- */
 
 @media (max-width: 768px) {
@@ -1389,6 +1401,7 @@ footer {
 .schedule-cell.subject-religion { border-left: 4px solid #4a4a4a; }
 .schedule-cell.subject-tecnologia { border-left: 4px solid #00c0f9; }
 .schedule-cell.subject-consejo { border-left: 4px solid #7ed3c1; }
+.schedule-cell.subject-orientacion { border-left: 4px solid #ff9f43; }
 
 /* Resaltado de la columna del día de hoy */
 .schedule-desktop .day-col.active-today {
@@ -1521,6 +1534,7 @@ footer {
 .schedule-mobile-item.subject-religion { border-left: 5px solid #4a4a4a; }
 .schedule-mobile-item.subject-tecnologia { border-left: 5px solid #00c0f9; }
 .schedule-mobile-item.subject-consejo { border-left: 5px solid #7ed3c1; }
+.schedule-mobile-item.subject-orientacion { border-left: 5px solid #ff9f43; }
 
 .schedule-mobile-empty {
   text-align: center;
