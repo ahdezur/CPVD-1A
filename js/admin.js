@@ -757,6 +757,10 @@ async function editEvent(ev) {
     quizStatus.style.display = ev.quiz_name ? 'block' : 'none';
   }
 
+  // Limpiar y resetear variables de archivos temporales al inicio para evitar datos sucios/cruzados
+  currentAttachments = [];
+  currentQuiz = { name: '', data: '' };
+
   eventIdInput.value = ev.id;
   eventTitleInput.value = ev.title;
   if (eventSubjectInput) {
@@ -766,7 +770,12 @@ async function editEvent(ev) {
   eventDescriptionInput.value = ev.description;
 
   if (formEventTitle) formEventTitle.textContent = '🗓️ Editar Actividad';
-  if (btnSaveEvent) btnSaveEvent.textContent = 'Actualizar Actividad';
+  
+  // Deshabilitar botón de guardar y mostrar estado de carga para prevenir sobreescrituras accidentales
+  if (btnSaveEvent) {
+    btnSaveEvent.textContent = '⏳ Cargando archivos...';
+    btnSaveEvent.disabled = true;
+  }
 
   // Desplazar al formulario
   eventForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -801,9 +810,15 @@ async function editEvent(ev) {
 
     updateAttachmentListUI(true);
     updateQuizStatus(true);
+
+    // Habilitar de nuevo el botón de actualizar
+    if (btnSaveEvent) {
+      btnSaveEvent.textContent = 'Actualizar Actividad';
+      btnSaveEvent.disabled = false;
+    }
   } catch (err) {
     console.error("Error al cargar archivos adjuntos en editEvent:", err);
-    showToast("Error al cargar archivos adjuntos de la actividad.", "error");
+    showToast("Error al cargar los archivos desde el servidor.", "error");
     
     // Fallback con nombres conocidos
     let parsedNames = [];
@@ -818,6 +833,12 @@ async function editEvent(ev) {
     
     updateAttachmentListUI(true);
     updateQuizStatus(true);
+
+    // Mantener el botón deshabilitado para prevenir que se sobrescriban los datos con archivos vacíos
+    if (btnSaveEvent) {
+      btnSaveEvent.textContent = '⚠️ Error: No se pudo cargar';
+      btnSaveEvent.disabled = true;
+    }
   }
 }
 
@@ -870,7 +891,10 @@ function resetEventForm() {
   }
 
   if (formEventTitle) formEventTitle.textContent = '🗓️ Programar Nueva Actividad';
-  if (btnSaveEvent) btnSaveEvent.textContent = 'Programar Actividad';
+  if (btnSaveEvent) {
+    btnSaveEvent.textContent = 'Programar Actividad';
+    btnSaveEvent.disabled = false;
+  }
 }
 
 if (btnClearEvent) {
