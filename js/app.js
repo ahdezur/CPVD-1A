@@ -103,6 +103,13 @@ async function initApp() {
     }
   });
 
+  // Cerrar modales con la tecla Escape
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAllModals();
+    }
+  });
+
   // Manejar links de navegación activa
   setupNavigationHighlighting();
 }
@@ -221,7 +228,8 @@ const subjectIcons = {
   religion: "🕊️",
   consejo: "🤝",
   tecnologia: "💻",
-  arte: "🎨"
+  arte: "🎨",
+  orientacion: "🧭"
 };
 
 // Mostrar detalles del evento en el Modal
@@ -482,8 +490,29 @@ function renderUpcomingEvents() {
     
     const icon = ev.subject ? subjectIcons[ev.subject] || '' : '';
 
+    const cleanSubjectName = {
+      lenguaje: "Lenguaje",
+      science: "Science & Society",
+      math: "Math",
+      musica: "Music",
+      ingles: "English",
+      ef: "Physics Education",
+      religion: "Religión",
+      consejo: "Councelling",
+      tecnologia: "Technology",
+      arte: "Arts",
+      orientacion: "Orientación"
+    };
+
+    const badgeName = ev.subject ? (cleanSubjectName[ev.subject] || ev.subject) : 'General';
+    const badgeClass = ev.subject ? `subject-${ev.subject}` : 'subject-general';
+    const badgeHtml = `<span class="subject-badge ${badgeClass}">${badgeName}</span>`;
+
     li.innerHTML = `
-      <div class="event-date">${formattedDate}</div>
+      <div class="event-date-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span class="event-date" style="margin-bottom: 0;">${formattedDate}</span>
+        ${badgeHtml}
+      </div>
       <h4>${icon} ${ev.title}</h4>
       <p>${ev.description.substring(0, 75)}${ev.description.length > 75 ? '...' : ''}</p>
     `;

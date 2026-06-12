@@ -1556,5 +1556,67 @@ footer {
   }
 }
 
+/* ETIQUETAS DE ASIGNATURA EN PRÓXIMOS EVENTOS */
+.subject-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-family: var(--font-heading);
+}
+
+.subject-badge.subject-lenguaje {
+  background-color: hsl(200, 95%, 90%);
+  color: hsl(200, 85%, 30%);
+}
+.subject-badge.subject-science {
+  background-color: hsl(140, 80%, 90%);
+  color: hsl(140, 75%, 25%);
+}
+.subject-badge.subject-math {
+  background-color: hsl(0, 90%, 92%);
+  color: hsl(0, 75%, 35%);
+}
+.subject-badge.subject-musica {
+  background-color: hsl(270, 85%, 93%);
+  color: hsl(270, 75%, 40%);
+}
+.subject-badge.subject-ingles {
+  background-color: hsl(50, 90%, 88%);
+  color: hsl(50, 80%, 25%);
+}
+.subject-badge.subject-ef {
+  background-color: hsl(25, 95%, 90%);
+  color: hsl(25, 85%, 35%);
+}
+.subject-badge.subject-religion {
+  background-color: hsl(60, 40%, 92%);
+  color: hsl(60, 40%, 30%);
+}
+.subject-badge.subject-consejo {
+  background-color: hsl(175, 80%, 90%);
+  color: hsl(175, 75%, 30%);
+}
+.subject-badge.subject-tecnologia {
+  background-color: hsl(215, 25%, 90%);
+  color: hsl(215, 35%, 35%);
+}
+.subject-badge.subject-arte {
+  background-color: hsl(330, 90%, 92%);
+  color: hsl(330, 80%, 35%);
+}
+.subject-badge.subject-orientacion {
+  background-color: hsl(28, 100%, 92%);
+  color: hsl(28, 80%, 35%);
+}
+.subject-badge.subject-general {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
 
 
